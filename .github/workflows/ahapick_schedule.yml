@@ -1,0 +1,113 @@
+name: ahapick Auto Posting
+
+on:
+  # ── Schedule (Korean Time KST = UTC+9) ────────────────────────
+  # Uncomment to enable auto-posting
+  # schedule:
+  #   - cron: "0 23 * * *"   # KST 08:00 (UTC 23:00)
+  #   - cron: "0 2  * * *"   # KST 11:00 (UTC 02:00)
+  #   - cron: "0 6  * * *"   # KST 15:00 (UTC 06:00)
+  #   - cron: "0 11 * * *"   # KST 20:00 (UTC 11:00)
+
+  # ── Manual run ─────────────────────────────────────────────────
+  workflow_dispatch:
+    inputs:
+      keyword:
+        description: "Specify keyword (leave blank for auto trend collection)"
+        required: false
+        default: ""
+      force:
+        description: "Skip interval check (true/false)"
+        required: false
+        default: "false"
+      draft:
+        description: "Draft mode — save without publishing (true/false)"
+        required: false
+        default: "false"
+
+jobs:
+  post:
+    name: ahapick Auto Blog Post
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      # ── 2. Python setup ──────────────────────────────────────
+      - name: Install Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      # ── 3. Restore sensitive files ───────────────────────────
+      - name: Restore credentials.json
+        run: |
+          echo '${{ secrets.AHAPICK_CREDENTIALS_JSON }}' > states/ahapick/credentials.json
+
+      - name: Restore token.json
+        run: |
+          echo '${{ secrets.AHAPICK_TOKEN_JSON }}' > states/ahapick/token.json
+
+      - name: Init state files (if missing)
+        run: |
+          [ ! -f states/ahapick/published_log.json ] && echo '{"entries":[]}' > states/ahapick/published_log.json || true
+          [ ! -f states/ahapick/used_images.json ]   && echo '[]'             > states/ahapick/used_images.json   || true
+
+      # ── 4. Run orchestrator ──────────────────────────────────
+      - name: Run orchestrator
+        env:
+          BLOG_TARGET:           ahapick
+          GEMINI_API_KEY:        ${{ secrets.GEMINI_API_KEY }}
+          BLOG_ID:               ${{ secrets.AHAPICK_BLOG_ID }}
+          UNSPLASH_ACCESS_KEY:   ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          PIXABAY_API_KEY:       ${{ secrets.PIXABAY_API_KEY }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY:    ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          GEMINI_TEXT_MODEL:     "gemini-2.5-flash"
+          PYTHONIOENCODING:      "utf-8"
+          PYTHONPATH:            ".:core"
+        run: |
+          KEYWORD="${{ github.event.inputs.keyword }}"
+          DRAFT="${{ github.event.inputs.draft }}"
+
+          CMD="python core/orchestrator.py --force"
+
+          if [ -n "$KEYWORD" ]; then
+            CMD="$CMD --keyword \"$KEYWORD\""
+          fi
+
+          if [ "$DRAFT" = "true" ]; then
+            CMD="$CMD --draft"
+          fi
+
+          echo "Running: $CMD"
+          eval $CMD
+
+      # ── 5. Commit state files ────────────────────────────────
+      - name: Commit state files
+        run: |
+          git config user.name  "ahapick-bot"
+          git config user.email "bot@ahapick.com"
+          git add states/ahapick/published_log.json states/ahapick/used_images.json
+          [ -f states/ahapick/rotation_state.json ] && git add states/ahapick/rotation_state.json || true
+          if [ "${{ github.event.inputs.draft }}" = "true" ] && [ -f states/ahapick/draft_preview.json ]; then
+            git add states/ahapick/draft_preview.json
+          fi
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: ahapick auto-post state update [skip ci]"
+            git pull --rebase origin master
+            git push origin HEAD:master
+          fi

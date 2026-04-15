@@ -16,8 +16,32 @@
 import sys
 import os
 import argparse
+import importlib
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+# ──────────────────────────────────────────────────────────────
+# Dynamic config loading — BLOG_TARGET 환경변수로 블로그 선택
+#   BLOG_TARGET=ohopick  → configs/config_ohopick.py
+#   BLOG_TARGET=ahapick  → configs/config_ahapick.py
+#   미설정               → ohopick 기본
+# ──────────────────────────────────────────────────────────────
+BLOG_TARGET = os.environ.get("BLOG_TARGET", "ohopick").lower()
+
+try:
+    cfg = importlib.import_module(f"configs.config_{BLOG_TARGET}")
+    print(f"[Orchestrator] Config: configs/config_{BLOG_TARGET}.py (BLOG_TARGET={BLOG_TARGET})")
+except ModuleNotFoundError:
+    try:
+        import config as cfg  # 개별 레포 레거시 fallback
+        print("[Orchestrator] Config: config.py (legacy fallback)")
+    except ModuleNotFoundError:
+        cfg = None
+        print("[Orchestrator] ⚠️  No config module found — env vars only")
+
+# STATES_DIR: 블로그별 상태 파일 디렉토리
+STATES_DIR = getattr(cfg, "STATES_DIR", f"states/{BLOG_TARGET}")
+os.makedirs(STATES_DIR, exist_ok=True)
 
 from writer_agent    import run_writer,    DRAFT_FILE
 from reviewer_agent  import run_reviewer,  REVIEWED_FILE
@@ -44,20 +68,35 @@ def _banner(text: str):
 def _detect_category(keyword: str, title: str = "") -> str:
     """발행 기록용 카테고리를 키워드/제목에서 판별합니다."""
     combined = (keyword or "") + " " + (title or "")
-    mapping = [
-        ("재테크/투자",         {"금리", "주식", "재테크", "투자", "대출", "펀드", "ETF", "청약", "저축", "연금", "부동산"}),
-        ("IT/테크",             {"AI", "인공지능", "반도체", "스마트폰", "앱", "소프트웨어", "클라우드", "로봇", "데이터"}),
-        ("건강/wellness",       {"건강", "다이어트", "운동", "식단", "영양", "수면", "스트레스", "비타민", "면역"}),
-        ("라이프스타일/생산성",  {"자기계발", "생산성", "독서", "습관", "루틴", "여행", "관광", "문화", "취업", "부업"}),
-        ("생활정보/절약",       {"절약", "생활비", "요금", "할인", "가계부", "통신비", "공과금", "보험", "카드혜택"}),
-    ]
+    lang = getattr(cfg, "BLOG_LANGUAGE", "ko") if cfg else "ko"
+
+    if lang == "en":
+        mapping = [
+            ("Finance & Investing",       {"finance", "invest", "stock", "saving", "fund", "ETF", "crypto", "budget", "loan", "tax", "retirement"}),
+            ("Technology & AI",           {"AI", "tech", "software", "app", "cloud", "robot", "data", "digital", "chip", "gadget"}),
+            ("Health & Wellness",         {"health", "diet", "fitness", "nutrition", "sleep", "stress", "vitamin", "immune", "workout", "mental"}),
+            ("Lifestyle & Productivity",  {"productivity", "habit", "routine", "lifestyle", "self-improvement", "career", "skill", "travel", "culture"}),
+            ("Travel & Culture",          {"travel", "trip", "destination", "culture", "food", "tourism", "adventure", "flight", "hotel"}),
+        ]
+        default_cat = "Finance & Investing"
+    else:
+        mapping = [
+            ("재테크/투자",         {"금리", "주식", "재테크", "투자", "대출", "펀드", "ETF", "청약", "저축", "연금", "부동산"}),
+            ("IT/테크",             {"AI", "인공지능", "반도체", "스마트폰", "앱", "소프트웨어", "클라우드", "로봇", "데이터"}),
+            ("건강/wellness",       {"건강", "다이어트", "운동", "식단", "영양", "수면", "스트레스", "비타민", "면역"}),
+            ("라이프스타일/생산성",  {"자기계발", "생산성", "독서", "습관", "루틴", "여행", "관광", "문화", "취업", "부업"}),
+            ("생활정보/절약",       {"절약", "생활비", "요금", "할인", "가계부", "통신비", "공과금", "보험", "카드혜택"}),
+        ]
+        default_cat = "재테크/투자"
+
+    combined_lower = combined.lower()
     for cat, keywords in mapping:
-        if any(kw in combined for kw in keywords):
+        if any(kw.lower() in combined_lower for kw in keywords):
             return cat
-    return "재테크/투자"  # 기본 fallback
+    return default_cat
 
 
-DRAFT_PREVIEW_FILE = "draft_preview.json"
+DRAFT_PREVIEW_FILE = os.path.join(STATES_DIR, "draft_preview.json")
 
 
 def run_pipeline(keyword: str = None, force: bool = False, draft: bool = False) -> dict | None:
@@ -141,8 +180,9 @@ def run_pipeline(keyword: str = None, force: bool = False, draft: bool = False) 
 
 
 def main():
+    blog_name = getattr(cfg, "BLOG_NAME", BLOG_TARGET) if cfg else BLOG_TARGET
     parser = argparse.ArgumentParser(
-        description="오호픽 블로그 자동 포스팅 오케스트레이터",
+        description=f"{blog_name} 블로그 자동 포스팅 오케스트레이터",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 파이프라인: Scheduler → Writer → Reviewer → SEO → Publisher
@@ -181,7 +221,7 @@ def main():
                 break
 
     print("\n" + "█" * 52)
-    print("  오호픽 블로그 자동화 — Orchestrator")
+    print(f"  {blog_name} 블로그 자동화 — Orchestrator")
     mode_label = "[Draft 모드 — 발행 안 함]" if args.draft else f"발행 예정: {args.count}개"
     print(f"  {mode_label}  {'[강제 실행]' if args.force else ''}")
     print("█" * 52)
