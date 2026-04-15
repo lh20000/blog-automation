@@ -1,0 +1,30 @@
+# =============================================
+# blog-automation .gitignore
+# =============================================
+
+# Google OAuth credentials (NEVER commit)
+states/*/credentials.json
+states/*/token.json
+credentials.json
+token.json
+
+# Pipeline intermediate files (local only, not committed)
+
+# Pipeline intermediate files
+draft_output.json
+reviewed_output.json
+seo_output.json
+
+# Logs
+logs/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+
+# OS
+.DS_Store
+Thumbs.db
