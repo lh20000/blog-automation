@@ -601,9 +601,26 @@ def parse_text_response(raw: str) -> dict:
     if current:
         data[current] = "\n".join(buf).strip()
 
-    # 소제목에 Gemini가 <h2> 태그를 넣는 경우 제거
+    # 소제목에 Gemini가 <h2> 태그를 넣는 경우 제거 + 첫 줄만 사용 (본문 오버플로우 방지)
     for key in ("SECTION1_TITLE", "SECTION2_TITLE"):
-        data[key] = re.sub(r"</?h[1-6][^>]*>", "", data[key]).strip()
+        cleaned = re.sub(r"</?h[1-6][^>]*>", "", data[key]).strip()
+        data[key] = cleaned.split("\n")[0].strip()
+
+    # ── INTRO 오버플로우 감지 ────────────────────────────────────
+    # Gemini가 SECTION1_BODY 내용을 INTRO에 몰아 넣는 경우:
+    # INTRO 안에 <h2>/<h3> 태그가 있으면 첫 태그 이전을 진짜 INTRO로 유지하고
+    # 나머지를 SECTION1_BODY로 이동합니다.
+    intro = data["INTRO"]
+    if intro and re.search(r'<h[23]', intro, re.IGNORECASE):
+        first_h = re.search(r'<h[23]', intro, re.IGNORECASE)
+        overflow = intro[first_h.start():].strip()
+        data["INTRO"] = intro[:first_h.start()].strip()
+        if overflow:
+            if not data["SECTION1_BODY"].strip():
+                data["SECTION1_BODY"] = overflow
+            else:
+                data["SECTION1_BODY"] = overflow + "\n" + data["SECTION1_BODY"]
+        print(f"  [INTRO 오버플로우] <h2>/<h3> 감지 → SECTION1_BODY로 이동 ({len(overflow)}자)")
 
     # <p> 안에 <ol>/<ul>이 들어간 무효 HTML 수정 (LLM이 <ol>을 <p>로 감싸는 패턴)
     # 케이스1: <p>...</ol></p>  → </ol>
@@ -644,12 +661,17 @@ def parse_text_response(raw: str) -> dict:
         content = re.sub(r'<strong>([^<]*)</strong>', r'\1', content, flags=re.IGNORECASE)
         # **마크다운 볼드** 제거
         content = re.sub(r'\*\*([^*]+)\*\*', r'\1', content)
-        # 중복 팁/주의 헤더 제거 — 한국어(전문가 팁, 주의사항) + 영어(Expert Tip, Warning) 모두 처리
+        # 중복 팁/주의 헤더 제거 — 한국어(전문가 팁, 주의/주의사항) + 영어(Expert Tip, Warning) 모두 처리
         content = re.sub(
-            r'^[💡⚠️\s]*(?:전문가\s*팁|주의사항?|Expert\s*Tip|Warning)[:\s\n]*',
+            r'^[💡⚠️\s]*(?:전문가\s*팁|주의(?:사항?)?|Expert\s*Tip|Warning)[:\s\n]*',
             '', content.strip(), flags=re.IGNORECASE,
         )
         data[box_key] = content.strip()
+
+    # 모든 본문 섹션에서 <b>/<strong> HTML 볼드 태그 제거 (CSS로 처리)
+    for key in ("SUMMARY", "INTRO", "SECTION1_BODY", "SECTION2_BODY", "OUTRO"):
+        if data[key]:
+            data[key] = re.sub(r'</?(?:b|strong)(?:\s[^>]*)?>', '', data[key])
 
     # SECTION_BODY에 중복 삽입된 팁/주의 박스 마크다운 텍스트 제거
     # Gemini가 "💡 **전문가 팁**..." 를 SECTION_BODY 안에 직접 쓰고
@@ -1399,19 +1421,19 @@ def _style_inline_tables(body: str) -> str:
 def assemble_html(d: dict, images: list[str | None]) -> str:
     img1, img2, img3 = images[0], images[1], images[2]
 
-    # 빈 H2 태그 방지 — Gemini가 빈 값 반환 시 폴백 제목 사용
-    section1_title = d["SECTION1_TITLE"].strip() or "핵심 정보"
-    section2_title = d["SECTION2_TITLE"].strip() or "실용 팁 & 정리"
+    # 빈 H2 태그 방지 — Gemini가 빈 값 반환 시 언어별 폴백 제목 사용
+    section1_title = d["SECTION1_TITLE"].strip() or ("Key Information" if LANGUAGE == "en" else "핵심 정보")
+    section2_title = d["SECTION2_TITLE"].strip() or ("Practical Tips & Takeaways" if LANGUAGE == "en" else "실용 팁 & 정리")
 
     html = ""
     html += summary_box(d["SUMMARY"])
     html += d["INTRO"] + "\n"
+    # 이미지1: INTRO 다음, 첫 번째 H2 이전에 배치 (대표 이미지)
+    html += img_tag(img1, section1_title)
     html += (
         f'<h2 style="margin-top:32px; margin-bottom:14px; font-size:1.3em; '
         f'color:#1a1a1a;">{section1_title}</h2>\n'
     )
-    # 이미지1: 첫 번째 H2 바로 다음, SECTION1_BODY 이전에 배치
-    html += img_tag(img1, section1_title)
     # section body 안에 표가 들어온 경우도 스타일 처리 (안전망)
     html += _style_inline_tables(d["SECTION1_BODY"]) + "\n"
 
