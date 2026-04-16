@@ -1,0 +1,95 @@
+name: 픽스IT연구소 자동 포스팅
+
+on:
+  # ── 스케줄 (KST = UTC+9) — 활성화하려면 주석 해제 ────────────
+  # schedule:
+  #   - cron: "0 23 * * *"   # KST 08:00
+  #   - cron: "0 2  * * *"   # KST 11:00
+  #   - cron: "0 6  * * *"   # KST 15:00
+  #   - cron: "0 11 * * *"   # KST 20:00
+
+  workflow_dispatch:
+    inputs:
+      keyword:
+        description: "키워드 지정 (비우면 트렌드 자동 수집)"
+        required: false
+        default: ""
+      draft:
+        description: "드래프트 모드 — 발행 없이 저장 (true/false)"
+        required: false
+        default: "false"
+
+jobs:
+  post:
+    name: 픽스IT연구소 블로그 글 자동 발행
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - name: 소스 체크아웃
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Python 3.11 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: 패키지 설치
+        run: pip install -r requirements.txt
+
+      - name: credentials.json 복원
+        env:
+          SECRET_VALUE: ${{ secrets.FIXITLAB_KO_CREDENTIALS_JSON }}
+        run: printf '%s' "$SECRET_VALUE" > states/fixitlab_ko/credentials.json
+
+      - name: token.json 복원
+        env:
+          SECRET_VALUE: ${{ secrets.FIXITLAB_KO_TOKEN_JSON }}
+        run: printf '%s' "$SECRET_VALUE" > states/fixitlab_ko/token.json
+
+      - name: 상태 파일 초기화 (없을 경우)
+        run: |
+          [ ! -f states/fixitlab_ko/published_log.json ] && echo '{"entries":[]}' > states/fixitlab_ko/published_log.json || true
+          [ ! -f states/fixitlab_ko/used_images.json ]   && echo '[]'             > states/fixitlab_ko/used_images.json   || true
+
+      - name: 오케스트레이터 실행
+        env:
+          BLOG_TARGET:           fixitlab_ko
+          GEMINI_API_KEY:        ${{ secrets.GEMINI_API_KEY }}
+          BLOG_ID:               ${{ secrets.FIXITLAB_KO_BLOG_ID }}
+          NAVER_CLIENT_ID:       ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET:   ${{ secrets.NAVER_CLIENT_SECRET }}
+          UNSPLASH_ACCESS_KEY:   ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          PIXABAY_API_KEY:       ${{ secrets.PIXABAY_API_KEY }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY:    ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          GEMINI_TEXT_MODEL:     "gemini-2.5-flash"
+          PYTHONIOENCODING:      "utf-8"
+          PYTHONPATH:            ".:core"
+        run: |
+          KEYWORD="${{ github.event.inputs.keyword }}"
+          DRAFT="${{ github.event.inputs.draft }}"
+          CMD="python core/orchestrator.py --force"
+          [ -n "$KEYWORD" ] && CMD="$CMD --keyword \"$KEYWORD\""
+          [ "$DRAFT" = "true" ] && CMD="$CMD --draft"
+          echo "실행: $CMD"
+          eval $CMD
+
+      - name: 상태 파일 커밋
+        run: |
+          git config user.name  "fixitlab-ko-bot"
+          git config user.email "bot@fixitlab-ko.com"
+          git add states/fixitlab_ko/published_log.json states/fixitlab_ko/used_images.json
+          [ -f states/fixitlab_ko/rotation_state.json ] && git add states/fixitlab_ko/rotation_state.json || true
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: 픽스IT연구소 자동 발행 상태 업데이트 [skip ci]"
+            git pull --rebase origin master
+            git push origin HEAD:master
+          fi

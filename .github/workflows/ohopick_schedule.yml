@@ -52,13 +52,16 @@ jobs:
         run: pip install -r requirements.txt
 
       # ── 3. 민감 파일 복원 ─────────────────────────────────────
+      # env 변수로 먼저 받은 뒤 printf 로 쓰기 — 특수문자·줄바꿈 안전
       - name: credentials.json 복원
-        run: |
-          echo '${{ secrets.OHOPICK_CREDENTIALS_JSON }}' > states/ohopick/credentials.json
+        env:
+          SECRET_VALUE: ${{ secrets.OHOPICK_CREDENTIALS_JSON }}
+        run: printf '%s' "$SECRET_VALUE" > states/ohopick/credentials.json
 
       - name: token.json 복원
-        run: |
-          echo '${{ secrets.OHOPICK_TOKEN_JSON }}' > states/ohopick/token.json
+        env:
+          SECRET_VALUE: ${{ secrets.OHOPICK_TOKEN_JSON }}
+        run: printf '%s' "$SECRET_VALUE" > states/ohopick/token.json
 
       - name: 상태 파일 초기화 (없을 경우)
         run: |

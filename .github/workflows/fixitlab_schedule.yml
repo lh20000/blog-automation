@@ -1,0 +1,93 @@
+name: Fix IT Lab Auto Posting
+
+on:
+  # ── Schedule (KST = UTC+9) — Uncomment to enable ─────────────
+  # schedule:
+  #   - cron: "0 23 * * *"   # KST 08:00
+  #   - cron: "0 2  * * *"   # KST 11:00
+  #   - cron: "0 6  * * *"   # KST 15:00
+  #   - cron: "0 11 * * *"   # KST 20:00
+
+  workflow_dispatch:
+    inputs:
+      keyword:
+        description: "Specify keyword (leave blank for auto trend collection)"
+        required: false
+        default: ""
+      draft:
+        description: "Draft mode — save without publishing (true/false)"
+        required: false
+        default: "false"
+
+jobs:
+  post:
+    name: Fix IT Lab Auto Blog Post
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Install Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      - name: Restore credentials.json
+        env:
+          SECRET_VALUE: ${{ secrets.FIXITLAB_CREDENTIALS_JSON }}
+        run: printf '%s' "$SECRET_VALUE" > states/fixitlab/credentials.json
+
+      - name: Restore token.json
+        env:
+          SECRET_VALUE: ${{ secrets.FIXITLAB_TOKEN_JSON }}
+        run: printf '%s' "$SECRET_VALUE" > states/fixitlab/token.json
+
+      - name: Init state files (if missing)
+        run: |
+          [ ! -f states/fixitlab/published_log.json ] && echo '{"entries":[]}' > states/fixitlab/published_log.json || true
+          [ ! -f states/fixitlab/used_images.json ]   && echo '[]'             > states/fixitlab/used_images.json   || true
+
+      - name: Run orchestrator
+        env:
+          BLOG_TARGET:           fixitlab
+          GEMINI_API_KEY:        ${{ secrets.GEMINI_API_KEY }}
+          BLOG_ID:               ${{ secrets.FIXITLAB_BLOG_ID }}
+          UNSPLASH_ACCESS_KEY:   ${{ secrets.UNSPLASH_ACCESS_KEY }}
+          PIXABAY_API_KEY:       ${{ secrets.PIXABAY_API_KEY }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY:    ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          GEMINI_TEXT_MODEL:     "gemini-2.5-flash"
+          PYTHONIOENCODING:      "utf-8"
+          PYTHONPATH:            ".:core"
+        run: |
+          KEYWORD="${{ github.event.inputs.keyword }}"
+          DRAFT="${{ github.event.inputs.draft }}"
+          CMD="python core/orchestrator.py --force"
+          [ -n "$KEYWORD" ] && CMD="$CMD --keyword \"$KEYWORD\""
+          [ "$DRAFT" = "true" ] && CMD="$CMD --draft"
+          echo "Running: $CMD"
+          eval $CMD
+
+      - name: Commit state files
+        run: |
+          git config user.name  "fixitlab-bot"
+          git config user.email "bot@fixitlab.com"
+          git add states/fixitlab/published_log.json states/fixitlab/used_images.json
+          [ -f states/fixitlab/rotation_state.json ] && git add states/fixitlab/rotation_state.json || true
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: Fix IT Lab auto-post state update [skip ci]"
+            git pull --rebase origin master
+            git push origin HEAD:master
+          fi

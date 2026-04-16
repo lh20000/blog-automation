@@ -52,13 +52,16 @@ jobs:
         run: pip install -r requirements.txt
 
       # ── 3. Restore sensitive files ───────────────────────────
+      # Pass secret as env var first, then write with printf — safe for special chars
       - name: Restore credentials.json
-        run: |
-          echo '${{ secrets.AHAPICK_CREDENTIALS_JSON }}' > states/ahapick/credentials.json
+        env:
+          SECRET_VALUE: ${{ secrets.AHAPICK_CREDENTIALS_JSON }}
+        run: printf '%s' "$SECRET_VALUE" > states/ahapick/credentials.json
 
       - name: Restore token.json
-        run: |
-          echo '${{ secrets.AHAPICK_TOKEN_JSON }}' > states/ahapick/token.json
+        env:
+          SECRET_VALUE: ${{ secrets.AHAPICK_TOKEN_JSON }}
+        run: printf '%s' "$SECRET_VALUE" > states/ahapick/token.json
 
       - name: Init state files (if missing)
         run: |
