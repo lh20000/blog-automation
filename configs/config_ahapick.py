@@ -48,15 +48,8 @@ LANGUAGE    = "en" # Language: English
 
 # ──────────────────────────────────────────
 # [7] Gemini Model Settings
-#   TEXT_MODEL     : primary model
-#   FALLBACK_MODELS: tried in order on failure
 # ──────────────────────────────────────────
-TEXT_MODEL = os.environ.get("GEMINI_TEXT_MODEL", "gemini-2.5-flash")
-
-FALLBACK_MODELS = [
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-]
+TEXT_MODEL = "gemini-3.1-flash-lite-preview"
 
 # ──────────────────────────────────────────
 # [8] Categories (English)

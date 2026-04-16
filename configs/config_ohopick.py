@@ -55,12 +55,7 @@ LANGUAGE    = "ko" # 언어
 # ──────────────────────────────────────────
 # [8] Gemini 모델 설정
 # ──────────────────────────────────────────
-TEXT_MODEL = os.environ.get("GEMINI_TEXT_MODEL", "gemini-2.5-flash")
-
-FALLBACK_MODELS = [
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-]
+TEXT_MODEL = "gemini-3.1-flash-lite-preview"
 
 # ──────────────────────────────────────────
 # [9] 카테고리 (한국어)

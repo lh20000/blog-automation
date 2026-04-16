@@ -19,7 +19,9 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from config import (GEMINI_API_KEY, UNSPLASH_ACCESS_KEY, PIXABAY_API_KEY,
                     CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET,
-                    TEXT_MODEL, FALLBACK_MODELS)
+                    TEXT_MODEL)
+import config as _cfg_cg
+FALLBACK_MODELS = getattr(_cfg_cg, "FALLBACK_MODELS", [TEXT_MODEL])
 import config as _cfg
 LANGUAGE  = getattr(_cfg, "LANGUAGE",  "ko")
 BLOG_NAME = getattr(_cfg, "BLOG_NAME", "")

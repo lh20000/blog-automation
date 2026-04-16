@@ -54,12 +54,7 @@ TREND_COUNT = 5
 # ──────────────────────────────────────────
 # [7] Gemini Model Settings
 # ──────────────────────────────────────────
-TEXT_MODEL = os.environ.get("GEMINI_TEXT_MODEL", "gemini-2.5-flash")
-
-FALLBACK_MODELS = [
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-]
+TEXT_MODEL = "gemini-3.1-flash-lite-preview"
 
 # ──────────────────────────────────────────
 # [8] Categories (Fix IT Lab PROMPT v2.2)
