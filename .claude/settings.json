@@ -1,17 +1,27 @@
 {
-  "hooks": [
-    {
-      "matcher": "Edit|Write",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "python -m py_compile \"$CLAUDE_FILE_PATHS\" && echo 'Syntax OK'"
-        },
-        {
-          "type": "command",
-          "command": "python core/validate_config.py 2>/dev/null || echo 'Config check skipped'"
-        }
-      ]
-    }
-  ]
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -m py_compile \"$CLAUDE_FILE_PATHS\" && echo 'Syntax OK'"
+          },
+          {
+            "type": "command",
+            "command": "python core/validate_config.py 2>/dev/null || echo 'Config check skipped'"
+          },
+          {
+            "type": "command",
+            "command": "black \"$CLAUDE_FILE_PATHS\" --quiet 2>/dev/null || echo 'black skipped'"
+          },
+          {
+            "type": "command",
+            "command": "ruff check \"$CLAUDE_FILE_PATHS\" --fix --quiet 2>/dev/null || echo 'ruff skipped'"
+          }
+        ]
+      }
+    ]
+  }
 }
