@@ -20,6 +20,9 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 from config import (GEMINI_API_KEY, UNSPLASH_ACCESS_KEY, PIXABAY_API_KEY,
                     CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET,
                     TEXT_MODEL, FALLBACK_MODELS)
+import config as _cfg
+LANGUAGE  = getattr(_cfg, "LANGUAGE",  "ko")
+BLOG_NAME = getattr(_cfg, "BLOG_NAME", "")
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -37,11 +40,15 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
 # 1. 텍스트 생성
 # ──────────────────────────────────────────
 
-def generate_text_content(keyword: str) -> dict | None:
-    """Gemini로 실용 정보 중심의 블로그 텍스트를 생성합니다."""
-    print(f"  텍스트 생성 중: '{keyword}'")
+def _build_prompt(keyword: str) -> str:
+    """LANGUAGE 설정에 따라 한국어 또는 영어 프롬프트를 반환합니다."""
+    if LANGUAGE == "en":
+        return _build_prompt_en(keyword)
+    return _build_prompt_ko(keyword)
 
-    prompt = f"""
+
+def _build_prompt_ko(keyword: str) -> str:
+    return f"""
 당신은 대한민국 독자를 위한 실용 정보 블로그 전문 작가입니다.
 아래 키워드 주제로 독자가 읽고 즉시 행동할 수 있는 정보성 글을 작성하세요.
 
@@ -238,8 +245,151 @@ def generate_text_content(keyword: str) -> dict | None:
 (마무리 1~2문장, <p> 태그 사용, 이모지 없이, 독자가 바로 취할 행동 한 가지 제시)
 
 ##TAGS##
-(태그 5개, 쉼표 구분, "오호픽" 제외)
+(태그 5개, 쉼표 구분, "{BLOG_NAME}" 제외)
 """
+
+
+def _build_prompt_en(keyword: str) -> str:
+    return f"""
+You are a professional blog writer for US and global English-speaking readers.
+Write a practical, actionable information article on the topic below.
+
+[KEYWORD] {keyword}
+[REFERENCE YEAR] 2026 (write from current perspective)
+
+==============================
+CORE RULES — MUST FOLLOW
+==============================
+
+1. Specific numbers are mandatory (always state "as of 2026" where relevant)
+   - Amounts: "up to $500/month", "maximum $6,000 per year"
+   - Dates: "application window: January 2 – December 31, 2026"
+   - Rates: "top 30% income bracket", "23% increase year-over-year"
+   - Counts: "3 methods", "5-step process"
+   - If exact 2026 figures are unknown, use "approximately", "estimated", "projected"
+
+2. Step-by-step action guides are mandatory — use HTML ol/li tags
+   - Any numbered procedure must use this format:
+     <ol style="line-height:2; padding-left:20px;">
+       <li>Go to the official website</li>
+       <li>Create an account and log in</li>
+       <li>Click "Apply" and fill out the form</li>
+     </ol>
+   - NEVER write steps inline as ① ② ③ or 1. 2. 3. inside paragraph text
+   - NEVER chain steps with "→" arrows in a single sentence
+
+3. Comparison table is ALWAYS mandatory — no exceptions
+   - A ##TABLE_DATA## comparison table is REQUIRED for every article
+   - Compare at least 3 products/options/methods with real numbers
+   - Use REAL institution or brand names only
+     (e.g., Fidelity, Vanguard, Chase, Bank of America, Robinhood, Schwab, Betterment)
+   - NEVER use placeholder names like "Bank A", "Company B", "XYZ Fund"
+
+4. No emotional filler or vague language
+   Banned phrases: "many people wonder", "it's not easy", "we're all in this together",
+                   "important to note", "this will help you", "don't miss out"
+
+5. No emojis in body text (except 💡 once in the expert tip box and ⚠️ once in the warning box)
+
+6. Do NOT mention "{BLOG_NAME}" anywhere in the article (title, body, or tags)
+
+7. Opening rule — NO greeting; start with a shocking statistic or key fact
+
+8. Minimum 2,000 words of pure text (excluding images)
+
+9. Paragraph formatting — mobile readability first
+   - Max 2–3 sentences per <p> tag
+   - NEVER use <p>&nbsp;</p> — no blank paragraph spacers
+   - NEVER use standalone <br> tags — use CSS margin only
+
+10. Step-by-step sections — use <h3> subheadings for each step
+    - Each step must have its own <h3 style="margin-top:24px;">
+
+11. Every <h3> must be followed immediately by a <p> tag
+
+12. H2/H3 style attributes are mandatory
+    - All <h2> tags: style="margin-top:32px;"
+    - All <h3> tags: style="margin-top:24px;"
+
+13. Featured Snippet — place a key summary right after the first H2
+    - Immediately after the first <h2>, add a 2–3 sentence summary <p>
+
+14. Expert tip box (💡) and warning box (⚠️) — each required once
+    - Use ##TIPBOX## and ##WARNBOX## markers — STANDALONE output sections
+    - ❌ FORBIDDEN: Do NOT write tip/warning content inside SECTION1_BODY or SECTION2_BODY
+    - ✅ CORRECT: Write tip/warning content ONLY under ##TIPBOX## / ##WARNBOX## markers
+
+==============================
+OUTPUT FORMAT — use these markers exactly
+==============================
+
+##TITLE##
+(Click-worthy title, under 70 characters, keyword + number, no emoji, no "{BLOG_NAME}")
+
+##SUMMARY##
+(3-line key summary, each line starts with ✅, must include numbers, separated by newlines)
+
+##INTRO##
+(Start with a statistic/fact, 2–3 sentences, use <p> tags, no greeting or emotional language)
+
+##SECTION1_TITLE##
+(Subheading text only, no emoji, include a number where possible)
+
+##SECTION1_BODY##
+(2–3 paragraphs, specific numbers required)
+(Max 2–3 sentences per <p> tag; no <p>&nbsp;</p> or standalone <br>)
+(Use <ol style="line-height:2; padding-left:20px;"><li>...</li></ol> for any procedure)
+
+##TABLE_DATA##
+Output ONLY the JSON below. No other text, HTML tags, markdown, or code blocks.
+Minimum 3 rows × 4 columns of comparison data.
+
+{{
+  "headers": ["Category", "Option 1", "Option 2", "Option 3"],
+  "rows": [
+    ["Row 1", "Value 1", "Value 2", "Value 3"],
+    ["Row 2", "Value 4", "Value 5", "Value 6"],
+    ["Row 3", "Value 7", "Value 8", "Value 9"]
+  ]
+}}
+
+##SECTION2_TITLE##
+(Subheading text only, no emoji)
+
+##SECTION2_BODY##
+(2–3 paragraphs, at least 3 practical tips)
+(Max 2–3 sentences per <p> tag; no <p>&nbsp;</p> or standalone <br>)
+(⚠️ Do NOT write 💡 or ⚠️ tip/warning content here — use ##TIPBOX## / ##WARNBOX## markers only)
+
+##TIPBOX##
+(💡 Expert Tip — specific numbers + immediately actionable advice, 2–3 lines)
+
+##WARNBOX##
+(⚠️ Warning — common pitfalls readers miss, specific numbers/conditions, 2–3 lines)
+
+##FAQ_Q1##
+(A specific question a real reader would ask)
+##FAQ_A1##
+(Answer in 2–3 sentences, include numbers/dates/amounts)
+##FAQ_Q2##
+##FAQ_A2##
+##FAQ_Q3##
+##FAQ_A3##
+
+##OUTRO##
+(Closing 1–2 sentences, use <p> tags, no emoji, give reader one specific action to take)
+
+##TAGS##
+(5 tags, comma-separated, no "{BLOG_NAME}")
+"""
+
+
+def generate_text_content(keyword: str) -> dict | None:
+    """Gemini로 실용 정보 중심의 블로그 텍스트를 생성합니다."""
+    lang_label = "EN" if LANGUAGE == "en" else "KO"
+    print(f"  텍스트 생성 중 [{lang_label}]: '{keyword}'")
+
+    prompt = _build_prompt(keyword)
 
     import time
     models_to_try = list(dict.fromkeys(FALLBACK_MODELS))  # 순서 유지하며 중복 제거
@@ -490,9 +640,15 @@ def parse_text_response(raw: str) -> dict:
         content = data[box_key]
         # <ol>/<ul> 안에서 마커가 분리될 때 흘러들어온 <li>, </li>, </ol>, </ul> 제거
         content = re.sub(r'^(\s*(</?li[^>]*>|</ol>|</ul>|<ol[^>]*>|<ul[^>]*>)\s*)+', '', content, flags=re.I)
-        # **마크다운 볼드** 및 중복 팁/주의 헤더 제거
+        # HTML <strong>...</strong> 볼드 제거 (Gemini가 HTML 태그로 볼드 출력하는 경우)
+        content = re.sub(r'<strong>([^<]*)</strong>', r'\1', content, flags=re.IGNORECASE)
+        # **마크다운 볼드** 제거
         content = re.sub(r'\*\*([^*]+)\*\*', r'\1', content)
-        content = re.sub(r'^[💡⚠️\s]*(?:전문가 팁|주의)[:\s]*', '', content.strip(), flags=re.IGNORECASE)
+        # 중복 팁/주의 헤더 제거 — 한국어(전문가 팁, 주의사항) + 영어(Expert Tip, Warning) 모두 처리
+        content = re.sub(
+            r'^[💡⚠️\s]*(?:전문가\s*팁|주의사항?|Expert\s*Tip|Warning)[:\s\n]*',
+            '', content.strip(), flags=re.IGNORECASE,
+        )
         data[box_key] = content.strip()
 
     # SECTION_BODY에 중복 삽입된 팁/주의 박스 마크다운 텍스트 제거
@@ -1149,56 +1305,62 @@ def img_tag(src: str | None, alt: str) -> str:
 
 
 def summary_box(summary_text: str) -> str:
+    label = "Key Takeaways" if LANGUAGE == "en" else "핵심 요약"
     lines = [l.strip() for l in summary_text.strip().splitlines() if l.strip()]
     items = "".join(f"<li style='margin:7px 0; line-height:1.7;'>{l}</li>" for l in lines)
     return (
         '<div style="background:#e8f4fd; border-left:5px solid #1976D2; '
         'padding:18px 22px; margin:26px 0; border-radius:8px;">'
-        '<p style="margin:0 0 10px 0; font-weight:bold; font-size:1.05em; '
-        'color:#1565C0;">핵심 요약</p>'
+        f'<p style="margin:0 0 10px 0; font-weight:bold; font-size:1.05em; '
+        f'color:#1565C0;">{label}</p>'
         f'<ul style="margin:0; padding-left:22px; line-height:1.8;">{items}</ul>'
         '</div>'
     )
 
 
 def tip_box(content: str) -> str:
+    label = "💡 Expert Tip" if LANGUAGE == "en" else "💡 전문가 팁"
     return (
         '<div style="background:#fff8e1; border-left:5px solid #F9A825; '
         'padding:18px 22px; margin:32px 0; border-radius:8px;">'
-        '<p style="margin:0 0 10px 0; font-weight:bold; color:#E65100;">'
-        '💡 전문가 팁</p>'
+        f'<p style="margin:0 0 10px 0; font-weight:bold; color:#E65100;">'
+        f'{label}</p>'
         f'<p style="margin:0; line-height:1.8; color:#333;">{content}</p>'
         '</div>'
     )
 
 
 def warn_box(content: str) -> str:
+    label = "⚠️ Warning" if LANGUAGE == "en" else "⚠️ 주의사항"
     return (
         '<div style="background:#fff3e0; border-left:5px solid #e53935; '
         'padding:18px 22px; margin:32px 0; border-radius:8px;">'
-        '<p style="margin:0 0 10px 0; font-weight:bold; color:#c62828;">'
-        '⚠️ 주의사항</p>'
+        f'<p style="margin:0 0 10px 0; font-weight:bold; color:#c62828;">'
+        f'{label}</p>'
         f'<p style="margin:0; line-height:1.8; color:#333;">{content}</p>'
         '</div>'
     )
 
 
 def faq_section(d: dict) -> str:
+    faq_title = "Frequently Asked Questions" if LANGUAGE == "en" else "자주 묻는 질문 (FAQ)"
     html = (
-        '<h2 style="margin-top:36px; margin-bottom:16px; '
-        'font-size:1.25em; color:#1a1a1a;">자주 묻는 질문 (FAQ)</h2>\n'
+        f'<h2 style="margin-top:36px; margin-bottom:16px; '
+        f'font-size:1.25em; color:#1a1a1a;">{faq_title}</h2>\n'
     )
     for i in range(1, 4):
         q = d.get(f"FAQ_Q{i}", "").strip()
         a = d.get(f"FAQ_A{i}", "").strip()
         if not q:
             continue
+        # Gemini가 FAQ 답변에 <p> 태그를 포함하는 경우 제거 — 중첩 <p> 방지
+        a_clean = re.sub(r'</?p[^>]*>', '', a).strip()
         html += (
             '<div style="background:#f9f9f9; border:1px solid #e0e0e0; '
             'padding:16px 20px; margin:14px 0; border-radius:8px;">'
             f'<p style="margin:0 0 8px 0; font-weight:bold; color:#1565C0;">'
             f'Q. {q}</p>'
-            f'<p style="margin:0; line-height:1.8; color:#444;">A. {a}</p>'
+            f'<p style="margin:0; line-height:1.8; color:#444;">A. {a_clean}</p>'
             '</div>\n'
         )
     return html
@@ -1243,13 +1405,13 @@ def assemble_html(d: dict, images: list[str | None]) -> str:
 
     html = ""
     html += summary_box(d["SUMMARY"])
-    # 이미지1: 서론 <p> 바로 다음, 첫 번째 H2 이전에 배치
     html += d["INTRO"] + "\n"
-    html += img_tag(img1, section1_title)
     html += (
         f'<h2 style="margin-top:32px; margin-bottom:14px; font-size:1.3em; '
         f'color:#1a1a1a;">{section1_title}</h2>\n'
     )
+    # 이미지1: 첫 번째 H2 바로 다음, SECTION1_BODY 이전에 배치
+    html += img_tag(img1, section1_title)
     # section body 안에 표가 들어온 경우도 스타일 처리 (안전망)
     html += _style_inline_tables(d["SECTION1_BODY"]) + "\n"
 
@@ -1271,10 +1433,15 @@ def assemble_html(d: dict, images: list[str | None]) -> str:
     if d.get("WARNBOX", "").strip():
         html += warn_box(d["WARNBOX"])
     html += faq_section(d)
+    disclaimer = (
+        "※ This content is based on 2026 data and may change with policy or market updates."
+        if LANGUAGE == "en" else
+        "※ 본 내용은 2026년 기준이며 정책 변경 시 달라질 수 있습니다."
+    )
     html += (
-        '<p style="margin:24px 0 8px 0; font-size:0.85em; color:#888; '
-        'border-top:1px solid #e0e0e0; padding-top:14px;">'
-        '※ 본 내용은 2026년 기준이며 정책 변경 시 달라질 수 있습니다.</p>\n'
+        f'<p style="margin:24px 0 8px 0; font-size:0.85em; color:#888; '
+        f'border-top:1px solid #e0e0e0; padding-top:14px;">'
+        f'{disclaimer}</p>\n'
     )
     html += img_tag(img3, "마무리 이미지")
     html += d["OUTRO"] + "\n"
