@@ -20,7 +20,14 @@ BLOG_ID       = os.environ.get("FIXAILAB_BLOG_ID") or os.environ.get("BLOG_ID")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 # ──────────────────────────────────────────
-# [3] Image API Keys
+# [3] Naver API (영어 블로그 미사용 — None 유지)
+# trend_collector.py 임포트 호환성을 위해 선언 필요
+# ──────────────────────────────────────────
+NAVER_CLIENT_ID     = None
+NAVER_CLIENT_SECRET = None
+
+# ──────────────────────────────────────────
+# [4] Image API Keys
 # ──────────────────────────────────────────
 UNSPLASH_ACCESS_KEY = os.environ.get("UNSPLASH_ACCESS_KEY")
 PIXABAY_API_KEY     = os.environ.get("PIXABAY_API_KEY")
