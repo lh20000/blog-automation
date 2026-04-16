@@ -212,9 +212,10 @@ tr:nth-child(even) {background:#f9f9f9 !important;}
     base_body: dict = {"content": TABLE_STYLE + content}
     if tags:
         base_body["labels"] = tags
-    # ※ Blogger API v3는 customMetaData(검색 설명) 저장을 지원하지 않음.
-    #   patch/update/insert 모두 무시되어 저장 불가 — Blogger API 플랫폼 제한.
-    #   검색 설명은 발행 후 Blogger 관리자 → 글 편집 → 검색 설명에서 직접 입력 필요.
+    if description:
+        # Blogger API v3는 customMetaData 필드를 통해 검색 설명 저장 시도
+        # (API 플랫폼 제한으로 무시될 수 있음 — 실패해도 발행은 정상 진행)
+        base_body["customMetaData"] = json.dumps({"itemprop:description": description}, ensure_ascii=False)
 
     try:
         # ── STEP 1: 영문 슬러그 title로 초안 생성 ──────────

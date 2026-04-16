@@ -19,6 +19,9 @@ import os
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+import config as _cfg
+LANGUAGE = getattr(_cfg, "LANGUAGE", "ko")
+
 REVIEWED_FILE = "reviewed_output.json"
 SEO_FILE      = "seo_output.json"
 
@@ -111,16 +114,22 @@ def _build_description(content: str, existing: str = "") -> tuple[str, list[str]
         logs.append(f"메타 디스크립션 — ✅ 기존 유지 ({len(existing)}자)")
         return existing, logs
 
-    raw = _extract_first_paragraph(content)
-    desc = raw[:120].rstrip(".,?!。？！")
+    # 언어별 디스크립션 한계치: 한국어 120자, 영어 100자
+    DESC_LIMIT = 100 if LANGUAGE == "en" else 120
 
-    # 마지막 완결 문장까지만
-    last_period = max(desc.rfind("."), desc.rfind("다"), desc.rfind("요"))
+    raw = _extract_first_paragraph(content)
+    desc = raw[:DESC_LIMIT * 2].rstrip(".,?!。？！")
+
+    # 마지막 완결 문장까지만 (최소 40자 이상인 경우에만 자름)
+    if LANGUAGE == "en":
+        last_period = desc.rfind(".")
+    else:
+        last_period = max(desc.rfind("."), desc.rfind("다"), desc.rfind("요"))
     if last_period > 40:
         desc = desc[: last_period + 1]
 
-    desc = desc[:160]  # 최대 160자 (검색엔진 표준)
-    logs.append(f"메타 디스크립션 — 자동 생성 ({len(desc)}자)")
+    desc = desc[:DESC_LIMIT]
+    logs.append(f"메타 디스크립션 — 자동 생성 ({len(desc)}자, 한계 {DESC_LIMIT}자)")
     return desc, logs
 
 
