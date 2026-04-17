@@ -409,7 +409,6 @@ def _generate_openai(keyword: str) -> dict | None:
         response = oai.chat.completions.create(
             model=TEXT_MODEL,
             messages=[{"role": "user", "content": _build_prompt(keyword)}],
-            temperature=0.7,
             max_completion_tokens=4096,
         )
         text  = response.choices[0].message.content
