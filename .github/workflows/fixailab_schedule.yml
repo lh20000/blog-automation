@@ -61,6 +61,7 @@ jobs:
       - name: Run orchestrator
         env:
           BLOG_TARGET:           fixailab
+          OPENAI_API_KEY:        ${{ secrets.OPENAI_API_KEY }}
           GEMINI_API_KEY:        ${{ secrets.GEMINI_API_KEY }}
           BLOG_ID:               ${{ secrets.FIXAILAB_BLOG_ID }}
           UNSPLASH_ACCESS_KEY:   ${{ secrets.UNSPLASH_ACCESS_KEY }}
@@ -68,7 +69,6 @@ jobs:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY:    ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-          GEMINI_TEXT_MODEL:     "gemini-2.5-flash"
           PYTHONIOENCODING:      "utf-8"
           PYTHONPATH:            ".:core"
         run: |

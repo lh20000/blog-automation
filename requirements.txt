@@ -3,7 +3,10 @@
 # ohopick + ahapick 공통
 # =============================================
 
-# Gemini AI (텍스트 생성)
+# OpenAI (텍스트 생성 — gpt-5-mini)
+openai>=1.0.0
+
+# Gemini AI (텍스트 생성 — 폴백용)
 google-genai>=1.70.0
 
 # Google Blogger API (OAuth 인증 + 포스팅)

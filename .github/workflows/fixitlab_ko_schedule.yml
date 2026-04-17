@@ -61,6 +61,7 @@ jobs:
       - name: 오케스트레이터 실행
         env:
           BLOG_TARGET:           fixitlab_ko
+          OPENAI_API_KEY:        ${{ secrets.OPENAI_API_KEY }}
           GEMINI_API_KEY:        ${{ secrets.GEMINI_API_KEY }}
           BLOG_ID:               ${{ secrets.FIXITLAB_KO_BLOG_ID }}
           NAVER_CLIENT_ID:       ${{ secrets.NAVER_CLIENT_ID }}
@@ -70,7 +71,6 @@ jobs:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY:    ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-          GEMINI_TEXT_MODEL:     "gemini-2.5-flash"
           PYTHONIOENCODING:      "utf-8"
           PYTHONPATH:            ".:core"
         run: |

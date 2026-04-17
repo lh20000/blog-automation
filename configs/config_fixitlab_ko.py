@@ -53,7 +53,9 @@ TREND_COUNT = 5
 # ──────────────────────────────────────────
 # [8] Gemini 모델 설정
 # ──────────────────────────────────────────
-TEXT_MODEL = "gemini-3.1-flash-lite-preview"
+LLM_PROVIDER   = "openai"
+TEXT_MODEL     = "gpt-5-mini"
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
 # ──────────────────────────────────────────
 # [9] 카테고리 (지침서 v2.2 기준)

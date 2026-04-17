@@ -49,7 +49,9 @@ LANGUAGE    = "en" # Language: English
 # ──────────────────────────────────────────
 # [7] Gemini Model Settings
 # ──────────────────────────────────────────
-TEXT_MODEL = "gemini-3.1-flash-lite-preview"
+LLM_PROVIDER   = "openai"
+TEXT_MODEL     = "gpt-5-mini"
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
 # ──────────────────────────────────────────
 # [8] Categories (English)

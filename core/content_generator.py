@@ -22,11 +22,14 @@ from config import (GEMINI_API_KEY, UNSPLASH_ACCESS_KEY, PIXABAY_API_KEY,
                     TEXT_MODEL)
 import config as _cfg_cg
 FALLBACK_MODELS = getattr(_cfg_cg, "FALLBACK_MODELS", [TEXT_MODEL])
+LLM_PROVIDER   = getattr(_cfg_cg, "LLM_PROVIDER",   "gemini")
+OPENAI_API_KEY = getattr(_cfg_cg, "OPENAI_API_KEY",  "")
 import config as _cfg
 LANGUAGE  = getattr(_cfg, "LANGUAGE",  "ko")
 BLOG_NAME = getattr(_cfg, "BLOG_NAME", "")
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+# Gemini 클라이언트 (OpenAI 사용 시 None으로 두어 불필요한 초기화 방지)
+client = genai.Client(api_key=GEMINI_API_KEY) if LLM_PROVIDER != "openai" and GEMINI_API_KEY else None
 
 # Cloudinary SDK 초기화 (키가 설정된 경우에만)
 if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
@@ -387,14 +390,49 @@ Minimum 3 rows × 4 columns of comparison data.
 
 
 def generate_text_content(keyword: str) -> dict | None:
+    """LLM_PROVIDER 설정에 따라 OpenAI 또는 Gemini로 텍스트를 생성합니다."""
+    if LLM_PROVIDER == "openai":
+        return _generate_openai(keyword)
+    return _generate_gemini(keyword)
+
+
+def _generate_openai(keyword: str) -> dict | None:
+    """OpenAI gpt-5-mini로 블로그 콘텐츠를 생성합니다."""
+    if not OPENAI_API_KEY:
+        print("  [OpenAI] ❌ OPENAI_API_KEY 미설정")
+        return None
+    lang_label = "EN" if LANGUAGE == "en" else "KO"
+    print(f"  텍스트 생성 중 [{lang_label}|OpenAI {TEXT_MODEL}]: '{keyword}'")
+    try:
+        from openai import OpenAI
+        oai = OpenAI(api_key=OPENAI_API_KEY)
+        response = oai.chat.completions.create(
+            model=TEXT_MODEL,
+            messages=[{"role": "user", "content": _build_prompt(keyword)}],
+            temperature=0.7,
+            max_tokens=4096,
+        )
+        text  = response.choices[0].message.content
+        usage = response.usage
+        print(
+            f"  [OpenAI] 완료 — "
+            f"입력 {usage.prompt_tokens:,} / 출력 {usage.completion_tokens:,} tokens"
+        )
+        return parse_text_response(text)
+    except Exception as e:
+        print(f"  [OpenAI] 오류: {e}")
+        return None
+
+
+def _generate_gemini(keyword: str) -> dict | None:
     """Gemini로 실용 정보 중심의 블로그 텍스트를 생성합니다."""
     lang_label = "EN" if LANGUAGE == "en" else "KO"
-    print(f"  텍스트 생성 중 [{lang_label}]: '{keyword}'")
+    print(f"  텍스트 생성 중 [{lang_label}|Gemini]: '{keyword}'")
 
     prompt = _build_prompt(keyword)
 
     import time
-    models_to_try = list(dict.fromkeys(FALLBACK_MODELS))  # 순서 유지하며 중복 제거
+    models_to_try = list(dict.fromkeys(FALLBACK_MODELS))
     for attempt, model in enumerate(models_to_try, 1):
         try:
             if attempt > 1:
@@ -668,6 +706,8 @@ def parse_text_response(raw: str) -> dict:
             r'^[💡⚠️\s]*(?:전문가\s*팁|주의(?:사항?)?|Expert\s*Tip|Warning)[:\s\n]*',
             '', content.strip(), flags=re.IGNORECASE,
         )
+        # 위 패턴에 걸리지 않은 나머지 선행 이모지 제거 (박스 헤더에 이미 표시됨)
+        content = re.sub(r'^[💡⚠️]+\s*', '', content.strip())
         data[box_key] = content.strip()
 
     # 모든 본문 섹션에서 <b>/<strong> HTML 볼드 태그 제거 (CSS로 처리)
