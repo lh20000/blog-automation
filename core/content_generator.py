@@ -409,15 +409,24 @@ def _generate_openai(keyword: str) -> dict | None:
         response = oai.chat.completions.create(
             model=TEXT_MODEL,
             messages=[{"role": "user", "content": _build_prompt(keyword)}],
-            max_completion_tokens=4096,
+            max_completion_tokens=16384,
         )
         text  = response.choices[0].message.content
         usage = response.usage
+        finish = response.choices[0].finish_reason
         print(
             f"  [OpenAI] 완료 — "
             f"입력 {usage.prompt_tokens:,} / 출력 {usage.completion_tokens:,} tokens"
+            f" / finish_reason={finish}"
         )
-        return parse_text_response(text)
+        # 디버그: 원시 응답 앞 300자 출력 (파싱 문제 진단용)
+        print(f"  [OpenAI DEBUG] 응답 앞 300자: {repr(text[:300])}")
+        result = parse_text_response(text)
+        # 파싱 결과 요약 출력
+        empty_keys = [k for k, v in result.items() if not v.strip()]
+        if empty_keys:
+            print(f"  [OpenAI DEBUG] 비어있는 마커: {empty_keys}")
+        return result
     except Exception as e:
         print(f"  [OpenAI] 오류: {e}")
         return None
