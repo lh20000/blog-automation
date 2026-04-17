@@ -271,7 +271,8 @@ def check_structure(title: str, content: str) -> dict:
         warns.append(r5)
 
     abort       = len(fails) > 0
-    force_draft = abort or len(warns) > 0
+    # 경고(warn)만 있으면 발행 계속 진행 — abort(치명 오류)일 때만 임시보관
+    force_draft = abort
 
     if abort:
         status = "fail"
@@ -351,7 +352,8 @@ def check_content(title: str, content: str, tags: list[str] = None) -> dict:
         warns.append(r4)
 
     abort       = len(fails) > 0
-    force_draft = abort or len(warns) > 0
+    # 경고(warn)만 있으면 발행 계속 진행 — abort(치명 오류)일 때만 임시보관
+    force_draft = abort
 
     if abort:
         status = "fail"
