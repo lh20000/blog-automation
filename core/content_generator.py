@@ -213,7 +213,13 @@ def _build_prompt_ko(keyword: str) -> str:
  · 실용 정보형: "지금 당장 써먹을 수 있는 ~ 팁"
  · 비교·추천형: "~ vs ~, 뭐가 더 좋을까?"
  · 수치형: "3가지 방법", "5분이면 OK", "2026년 최신" 포함
- 이모지 없이 / 블로그명 금지)
+ 이모지 없이 / 블로그명 금지
+ [절대 금지 패턴]
+ - "완전정리" 금지 → 필요시 "완벽정리" 사용
+ - 수식어 2개 이상 중복 금지
+   나쁜 예: "나만 몰랐던 약 복용법, 2026년 최신 완벽 가이드 완전정리"
+   좋은 예: "나만 몰랐던 약 복용법 완벽정리"
+   좋은 예: "약 먹을 때 이것만 알면 됩니다")
 
 ##SLUG##
 (소문자 영문 + 하이픈, 최대 60자, 핵심 키워드 반영
@@ -240,9 +246,16 @@ def _build_prompt_ko(keyword: str) -> str:
  각 <p> 태그 안에 최대 2~3문장.
  어려운 개념 첫 등장 시 반드시 일상 비유로 먼저 설명.
  형식: "이건 마치 [일상 비유]와 같아요. 조금 더 자세히 말씀드리면..."
- 개념 설명 끝난 후 중간 환기 문장 1회 필수 삽입:
- 예: "여기까지 이해되셨나요?", "생각보다 간단하죠?"
- 환기 문장은 단독 <p> 태그로 작성.
+ 개념 설명 끝난 후 중간 환기 문장 1회 필수 삽입 (단독 <p> 태그로 작성):
+ 아래 중 문맥에 가장 자연스러운 것 1개만 선택 (매번 다른 표현 필수):
+ "여기까지 이해되셨나요?"
+ "생각보다 어렵지 않죠?"
+ "감이 오시나요?"
+ "이제 좀 더 명확해지셨나요?"
+ "그럼 이제 본론으로 들어가볼게요."
+ "핵심은 바로 이 부분입니다."
+ "여기서 잠깐, 중요한 포인트가 있어요."
+ → 매 글마다 반드시 다른 표현 선택. "여기까지 이해되셨나요?"만 반복 금지.
  절차/단계가 있으면 반드시 <ol style="line-height:2; padding-left:20px;"><li>...</li></ol> 사용.
  <p>&nbsp;</p>·단독<br> 절대 금지)
 
@@ -291,7 +304,13 @@ def _build_prompt_ko(keyword: str) -> str:
  "오늘 소개한 방법 중 하나만 골라 지금 바로 실천해보세요." 형식)
 
 ##TAGS##
-(태그 5개. 쉼표 구분. 블로그명 제외)
+(태그 5개. 쉼표 구분. 아래 규칙 준수:
+ - 블로그명 제외
+ - "2026년 최신", "완전정리", "완벽정리" 같은 형용사형 키워드 금지
+ - 연도 단독 태그 금지 ("2026", "2026년")
+ - 실제 검색에 쓰이는 명사형 키워드만 사용
+   좋은 예: 약복용법, 건강관리, 식전약, 복용시간, 의약품
+   나쁜 예: 2026년최신, 완전정리, 건강꿀팁2026)
 """
 
 
@@ -1144,6 +1163,21 @@ def tags_to_image_queries(tags: list[str], keyword: str = "") -> list[str]:
         # 소문자 + 영문자·공백만
         clean = re.sub(r"[^a-z\s]", " ", translated.lower()).strip()
         words = [w for w in clean.split() if w and len(w) > 1]
+
+        _UNSAFE_IMAGE_WORDS = {
+            "drug", "medicine", "injection", "syringe", "needle",
+            "pill", "tablet", "prescription", "medication",
+            "surgery", "hospital", "patient", "disease",
+            "weapon", "gun", "knife", "blood", "death",
+            "virus", "bacteria", "infection",
+        }
+        if set(words) & _UNSAFE_IMAGE_WORDS:
+            print(f"  [이미지 키워드] 부적합 단어 감지 → 대체 키워드 사용")
+            return [
+                "healthy lifestyle daily routine",
+                "wellness habits morning",
+                "person reading information guide",
+            ]
 
         if not words:
             queries = [fallback] * 3
