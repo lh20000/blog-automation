@@ -828,6 +828,13 @@ def parse_text_response(raw: str) -> dict:
         data[current] = "\n".join(buf).strip()
 
     # SECTION_BODY 첫 줄 H2 중복 제거 — 모델이 소제목 H2를 body 첫 줄에 반복 출력하는 경우
+    # <style> 블록 제거 — Gemini가 SECTION_BODY에 CSS 블록을 직접 삽입하는 경우 방어
+    for body_key in ("SECTION1_BODY", "SECTION2_BODY", "SECTION3_BODY", "SECTION4_BODY"):
+        if data[body_key]:
+            data[body_key] = re.sub(
+                r'<style[\s\S]*?</style>', '', data[body_key], flags=re.IGNORECASE
+            ).strip()
+
     for body_key in ("SECTION1_BODY", "SECTION2_BODY", "SECTION3_BODY", "SECTION4_BODY"):
         if data[body_key]:
             data[body_key] = re.sub(
@@ -1202,81 +1209,91 @@ _ABSTRACT_TAGS = {
     "꿀팁", "추천", "비교", "분석", "총정리", "완전정복",
 }
 
+# 이미지 검색에서 제외할 시각적으로 오해를 유발하는 태그 (영·한 공통)
+_MISLEADING_IMAGE_TAGS = {
+    "bitcoin", "crypto", "cryptocurrency", "blockchain", "nft", "defi",
+    "coin", "altcoin", "ethereum", "dogecoin", "litecoin", "web3",
+    "비트코인", "암호화폐", "가상화폐", "블록체인",
+}
+
 
 def _is_specific_tag(tag: str) -> bool:
     """이미지 검색에 충분히 구체적인 태그인지 판별합니다."""
-    clean = re.sub(r"[#\s]", "", tag)
-    if len(clean) < 3:                          # 3자 미만 제외
+    clean = re.sub(r"[#\s]", "", tag).lower()
+    if len(clean) < 3:                                  # 3자 미만 제외
         return False
-    if clean in _ABSTRACT_TAGS:                 # 추상 태그 제외
+    if clean in _ABSTRACT_TAGS:                         # 추상 태그 제외
         return False
-    if re.match(r"^\d{4}년?$", clean):          # 연도 단독 제외
+    if clean in _MISLEADING_IMAGE_TAGS:                 # 오해 유발 태그 제외
+        return False
+    if re.match(r"^\d{4}년?$", clean):                 # 연도 단독 제외
         return False
     return True
 
 
 def tags_to_image_queries(tags: list[str], keyword: str = "") -> list[str]:
     """
-    블로그 태그 목록 → 이미지 검색용 영문 쿼리 3개
-
-    1. 태그에서 추상적·짧은 것 제외, 가장 구체적인 태그 1개 선택
-    2. deep-translator로 영문 번역
-    3. 번역 결과로 쿼리 3개 생성:
-       q1 — 번역된 전체 구문   (예: "fuel cost saving")
-       q2 — 앞 2단어            (예: "fuel cost")
-       q3 — 첫 단어 + "korea"  (예: "fuel korea")
+    이미지 검색용 쿼리 3개 생성.
+    q1 — 메인 keyword 고정 (관련성 가장 높은 이미지 보장)
+    q2 — 태그 기반 (앞 2단어)
+    q3 — 태그 기반 (첫 단어 + 컨텍스트)
+    영어 블로그: 번역 없이 그대로 사용.
+    한국어 블로그: deep_translator로 영문 변환.
     """
-    fallback = "korea lifestyle daily"
+    fallback = "lifestyle daily" if LANGUAGE == "en" else "korea lifestyle daily"
+    kw = keyword.strip()
 
-    # 구체적인 태그 선택 (순서대로 첫 번째 적합한 것)
+    _UNSAFE_IMAGE_WORDS = {
+        "drug", "medicine", "injection", "syringe", "needle",
+        "pill", "tablet", "prescription", "medication",
+        "surgery", "hospital", "patient", "disease",
+        "weapon", "gun", "knife", "blood", "death",
+        "virus", "bacteria", "infection",
+    }
+
+    def _to_en_words(text: str) -> list[str]:
+        """텍스트 → 영문 단어 리스트. 영어 블로그면 번역 생략."""
+        if LANGUAGE == "en":
+            clean = re.sub(r"[^a-z0-9\s]", " ", text.lower()).strip()
+            return [w for w in clean.split() if w and len(w) > 1]
+        try:
+            from deep_translator import GoogleTranslator
+            translated = GoogleTranslator(source="ko", target="en").translate(text)
+            clean = re.sub(r"[^a-z\s]", " ", translated.lower()).strip()
+            return [w for w in clean.split() if w and len(w) > 1]
+        except Exception:
+            return []
+
+    # ── q1: 메인 키워드 고정 ──────────────────────────────────
+    kw_words = _to_en_words(kw) if kw else []
+    q1 = " ".join(kw_words[:3]) if kw_words else fallback
+
+    # ── q2, q3: 구체적 태그 기반 ────────────────────────────
     selected = next((t for t in tags if _is_specific_tag(t)), None)
-
     if not selected:
-        # 태그에서 못 찾으면 원본 키워드로 대체
-        selected = keyword.strip() if keyword else ""
-        if selected:
-            print(f"  [이미지 키워드] 구체적 태그 없음 → 키워드 사용: '{selected}'")
-        else:
-            print(f"  [이미지 키워드] 태그·키워드 모두 없음 → 기본값 사용")
-            return [fallback, fallback, fallback]
-
-    try:
-        from deep_translator import GoogleTranslator
-        translated = GoogleTranslator(source="ko", target="en").translate(selected)
-
-        # 소문자 + 영문자·공백만
-        clean = re.sub(r"[^a-z\s]", " ", translated.lower()).strip()
-        words = [w for w in clean.split() if w and len(w) > 1]
-
-        _UNSAFE_IMAGE_WORDS = {
-            "drug", "medicine", "injection", "syringe", "needle",
-            "pill", "tablet", "prescription", "medication",
-            "surgery", "hospital", "patient", "disease",
-            "weapon", "gun", "knife", "blood", "death",
-            "virus", "bacteria", "infection",
-        }
-        if set(words) & _UNSAFE_IMAGE_WORDS:
-            print(f"  [이미지 키워드] 부적합 단어 감지 → 대체 키워드 사용")
-            return [
-                "healthy lifestyle daily routine",
-                "wellness habits morning",
-                "person reading information guide",
-            ]
-
-        if not words:
-            queries = [fallback] * 3
-        else:
-            q1 = " ".join(words[:4])
-            q2 = " ".join(words[:2]) if len(words) >= 2 else words[0]
-            q3 = words[0] + " korea"
-            queries = [q1, q2, q3]
-
-        print(f"  [이미지 키워드] 태그:'{selected}' → '{translated}' → {queries}")
+        print(f"  [이미지 키워드] 구체적 태그 없음 → 키워드만으로 3개 생성")
+        q2 = " ".join(kw_words[:2]) if len(kw_words) >= 2 else q1
+        q3 = kw_words[0] if kw_words else fallback
+        queries = [q1, q2, q3]
+        print(f"  [이미지 키워드] → {queries}")
         return queries
 
-    except Exception as e:
-        print(f"  [이미지 키워드] 번역 실패: {e}")
-        return [fallback] * 3
+    tag_words = _to_en_words(selected)
+
+    if set(tag_words) & _UNSAFE_IMAGE_WORDS:
+        print(f"  [이미지 키워드] 부적합 단어 감지 → q2·q3 대체")
+        return [q1, "healthy lifestyle daily routine", "person reading information guide"]
+
+    if not tag_words:
+        q2 = q3 = q1
+    else:
+        q2 = " ".join(tag_words[:2]) if len(tag_words) >= 2 else tag_words[0]
+        q3 = tag_words[0] + (" tips" if LANGUAGE == "en" else " korea")
+
+    queries = [q1, q2, q3]
+    print(f"  [이미지 키워드] 키워드:'{kw}' → q1='{q1}' / 태그:'{selected}' → q2='{q2}', q3='{q3}'"
+    )
+    return queries
 
 
 # ──────────────────────────────────────────

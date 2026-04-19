@@ -25,9 +25,9 @@ LANGUAGE = getattr(_cfg, "LANGUAGE", "ko")
 REVIEWED_FILE = "reviewed_output.json"
 SEO_FILE      = "seo_output.json"
 
-# 제목 길이 기준
+# 제목 길이 기준 (영어는 자연스럽게 더 길어짐)
 TITLE_MIN = 30
-TITLE_MAX = 50
+TITLE_MAX = 70 if LANGUAGE == "en" else 50
 
 # 태그 최소 개수
 TAG_MIN = 5
