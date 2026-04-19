@@ -15,13 +15,13 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 DRAFT_FILE = "draft_output.json"
 
 # ══════════════════════════════════════════════════════════
-# [준비 코드] OpenAI gpt-5.4-mini 연동 — 현재 비활성화
+# [준비 코드] OpenAI gpt-4.1-mini 연동 — 현재 비활성화
 # Gemini → GPT 교체 시 아래 주석을 해제하고
 # content_generator.py의 generate_text_content()를
 # _generate_with_openai()로 교체하면 됩니다.
 #
 # 모델 정보 (2026년 3월 출시):
-#   공식 모델명: gpt-5.4-mini
+#   공식 모델명: gpt-4.1-mini
 #   입력: $0.75 / 1M tokens
 #   출력: $4.50 / 1M tokens
 #   특징: 구조화 프롬프트 마커 준수율 높음
@@ -31,11 +31,11 @@ DRAFT_FILE = "draft_output.json"
 # from openai import OpenAI
 #
 # _OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-# _OPENAI_MODEL   = "gpt-5.4-mini"
+# _OPENAI_MODEL   = "gpt-4.1-mini"
 #
 # def _generate_with_openai(prompt: str) -> str | None:
 #     """
-#     OpenAI gpt-5.4-mini로 블로그 콘텐츠를 생성합니다.
+#     OpenAI gpt-4.1-mini로 블로그 콘텐츠를 생성합니다.
 #     content_generator.py의 generate_text_content() 내부에서
 #     Gemini 호출 대신 이 함수를 호출하도록 교체하세요.
 #

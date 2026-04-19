@@ -45,6 +45,38 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
 # 1. 텍스트 생성
 # ──────────────────────────────────────────
 
+def _load_blog_docs() -> str:
+    """
+    BLOG_NAME에 해당하는 docs 파일을 읽어 프롬프트용 문자열로 반환.
+    파일이 없으면 빈 문자열 반환.
+    """
+    name_map = {
+        "ohopick":     "blog_ohopick",
+        "ahapick":     "blog_ahapick",
+        "fixitkr":     "blog_fixitkr",
+        "fixitlab_ko": "blog_fixitkr",
+        "fixiten":     "blog_fixiten",
+        "fixitlab":    "blog_fixiten",
+        "fixai":       "blog_fixai",
+        "fixailab":    "blog_fixai",
+    }
+    doc_name = name_map.get(BLOG_NAME.lower(), "")
+    if not doc_name:
+        return ""
+    docs_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "docs", f"{doc_name}.md"
+    )
+    try:
+        with open(docs_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        print(f"  [docs] {doc_name}.md 로드 완료 ({len(content)}자)")
+        return content
+    except FileNotFoundError:
+        print(f"  [docs] {docs_path} 없음 — 기본 프롬프트 사용")
+        return ""
+
+
 def _build_prompt(keyword: str) -> str:
     """LANGUAGE 설정에 따라 한국어 또는 영어 프롬프트를 반환합니다."""
     if LANGUAGE == "en":
@@ -53,7 +85,15 @@ def _build_prompt(keyword: str) -> str:
 
 
 def _build_prompt_ko(keyword: str) -> str:
-    return f"""
+    blog_docs = _load_blog_docs()
+    blog_guide = f"""
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+이 블로그 전용 지침 — 반드시 최우선 적용
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{blog_docs}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+""" if blog_docs else ""
+    return f"""{blog_guide}
 당신은 대한민국 독자를 위한 실용 정보 블로그 전문 작가입니다.
 아래 키워드 주제로 독자가 읽고 즉시 행동할 수 있는 정보성 글을 작성하세요.
 
@@ -120,10 +160,14 @@ def _build_prompt_ko(keyword: str) -> str:
 
 6. "오호픽" 블로그명 완전 금지 (제목, 본문, 태그 어디에도 포함 금지)
 
-7. 도입부 규칙
+7. 도입부 규칙 — 블로그 전용 지침 최우선 적용
    - 인사말("안녕하세요") 금지
-   - 반드시 충격적인 수치나 핵심 팩트로 시작
-   - 예: "청년도약계좌 가입자 중 42%가 납입 한도를 채우지 못해 연간 평균 18만원의 정부지원금을 놓치고 있습니다."
+   - 블로그 전용 지침(위 블로그 지침 섹션)에 공감형 도입부가 명시된 경우,
+     반드시 독자가 공감할 수 있는 상황·질문·경험으로 시작한다.
+     예: "혹시 이런 경험 있으신가요?", "저도 예전에 이걸 몰라서..."
+   - 블로그 지침에 수치형 도입부가 명시된 경우에만
+     충격적인 수치나 핵심 팩트로 시작한다.
+   - 기본값: 공감형 도입부 사용
 
 8. 최소 총 4,000자 이상 (이미지·HTML 태그 제외 순수 텍스트) — SEO 필수 기준
    - SECTION1_BODY: 최소 800자 이상 (단락 4개 이상)
@@ -207,6 +251,10 @@ def _build_prompt_ko(keyword: str) -> str:
 (클릭 유도 제목, 30자 이내, 키워드+수치 포함, 이모지 없이, "오호픽" 금지)
 예: "청년도약계좌 월 70만원 납입하면 5년 후 얼마?"
 
+##SLUG##
+(소문자 영문 + 하이픈, 최대 60자, 핵심 키워드 반영, 한국어 조사 제거
+예: "2026-savings-account-interest-rate-guide")
+
 ##SUMMARY##
 (핵심 요약 3줄, 각 줄 앞에 ✅ 붙이기, 반드시 수치 포함, 줄바꿈으로 구분)
 
@@ -279,7 +327,15 @@ def _build_prompt_ko(keyword: str) -> str:
 
 
 def _build_prompt_en(keyword: str) -> str:
-    return f"""
+    blog_docs = _load_blog_docs()
+    blog_guide = f"""
+==============================
+BLOG-SPECIFIC GUIDE — HIGHEST PRIORITY
+==============================
+{blog_docs}
+==============================
+""" if blog_docs else ""
+    return f"""{blog_guide}
 You are a professional blog writer for US and global English-speaking readers.
 Write a practical, actionable information article on the topic below.
 
@@ -322,7 +378,14 @@ CORE RULES — MUST FOLLOW
 
 6. Do NOT mention "{BLOG_NAME}" anywhere in the article (title, body, or tags)
 
-7. Opening rule — NO greeting; start with a shocking statistic or key fact
+7. Opening rule — Blog-specific guide takes priority
+   - NO greeting ("Hello", "Hi there" etc.)
+   - If the blog-specific guide (above) specifies a relatable opening,
+     start with a situation, question, or experience the reader can connect with.
+     Examples: "Have you ever wondered...?", "You're not alone if..."
+   - Only use a shocking statistic or key fact as the opening if the
+     blog-specific guide explicitly calls for it.
+   - Default: use a relatable, empathetic opening.
 
 8. Minimum 2,000 words of pure text (excluding images)
 
@@ -354,6 +417,10 @@ OUTPUT FORMAT — use these markers exactly
 
 ##TITLE##
 (Click-worthy title, under 70 characters, keyword + number, no emoji, no "{BLOG_NAME}")
+
+##SLUG##
+(lowercase English + hyphens only, max 60 characters,
+reflect core keyword, example: "best-time-book-flights-2026")
 
 ##SUMMARY##
 (3-line key summary, each line starts with ✅, must include numbers, separated by newlines)
@@ -645,7 +712,7 @@ def apply_table_styles(html: str) -> str:
 def parse_text_response(raw: str) -> dict:
     """##MARKER## 형식으로 응답을 파싱합니다."""
     markers = [
-        "TITLE", "SUMMARY", "INTRO",
+        "TITLE", "SLUG", "SUMMARY", "INTRO",
         "SECTION1_TITLE", "SECTION1_BODY",
         "TABLE_DATA",
         "SECTION2_TITLE", "SECTION2_BODY",
@@ -1374,17 +1441,17 @@ def fetch_pixabay_image(keyword: str) -> str | None:
 def get_image(img_prompt: str, fallback_keyword: str) -> str | None:
     """
     이미지 폴백 체인 (URL 반환, base64 없음):
-      1순위: Unsplash API
-      2순위: Pixabay API
+      1순위: Pixabay API
+      2순위: Unsplash API
     Imgur Client ID 설정 시 → WebP 변환 후 Imgur 영구 호스팅 URL 사용
     """
     search_term = img_prompt if img_prompt else fallback_keyword
 
-    src = fetch_unsplash_image(search_term)
+    src = fetch_pixabay_image(search_term)
     if src:
         return src
 
-    src = fetch_pixabay_image(search_term)
+    src = fetch_unsplash_image(search_term)
     if src:
         return src
 
@@ -1411,13 +1478,15 @@ def img_tag(src: str | None, alt: str) -> str:
 def summary_box(summary_text: str) -> str:
     label = "Key Takeaways" if LANGUAGE == "en" else "핵심 요약"
     lines = [l.strip() for l in summary_text.strip().splitlines() if l.strip()]
-    items = "".join(f"<li style='margin:7px 0; line-height:1.7;'>{l}</li>" for l in lines)
+    items = "".join(
+        f'<p style="margin:6px 0; line-height:1.7;">{l}</p>'
+        for l in lines
+    )
     return (
-        '<div style="background:#e8f4fd; border-left:5px solid #1976D2; '
-        'padding:18px 22px; margin:26px 0; border-radius:8px;">'
-        f'<p style="margin:0 0 10px 0; font-weight:bold; font-size:1.05em; '
-        f'color:#1565C0;">{label}</p>'
-        f'<ul style="margin:0; padding-left:22px; line-height:1.8;">{items}</ul>'
+        '<div style="background:#f0f7ff; border-left:4px solid #0066cc; '
+        'padding:16px 20px; margin-bottom:24px; border-radius:4px;">'
+        f'<strong style="font-size:15px;">[{label}]</strong>'
+        f'{items}'
         '</div>'
     )
 
@@ -1598,6 +1667,7 @@ def generate_blog_post(keyword: str) -> dict | None:
         "content": content_html,
         "tags":    tags,
         "keyword": keyword,
+        "slug":    d.get("SLUG", "").strip(),
     }
 
 

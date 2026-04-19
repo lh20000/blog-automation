@@ -22,8 +22,9 @@ RSS_SOURCES: dict[str, list[tuple[str, str]]] = {
         ("매일경제",     "https://www.mk.co.kr/rss/30200030/"),
     ],
     "건강/wellness": [
-        ("코메디닷컴",   "https://www.kormedi.com/feed/"),
-        ("헬스조선",     "https://health.chosun.com/rss/index.html"),
+        ("코메디닷컴",  "https://www.kormedi.com/feed/"),
+        ("헬스조선",    "https://health.chosun.com/site/data/rss/rss.xml"),
+        ("동아 건강",   "https://rss.donga.com/health.xml"),
     ],
     "IT/테크": [
         ("전자신문 IT",  "https://rss.etnews.com/Section901.xml"),
@@ -34,8 +35,8 @@ RSS_SOURCES: dict[str, list[tuple[str, str]]] = {
         ("여행신문",     "https://www.traveltimes.co.kr/rss/allArticle.xml"),
     ],
     "생활정보/절약": [
-        ("연합뉴스 생활","https://www.yna.co.kr/rss/life.xml"),
-        ("머니투데이",   "https://news.mt.co.kr/rss/rss_one.jsp?pCodeType=1&pCode=MTE0"),
+        ("동아 생활정보",        "https://rss.donga.com/lifeinfo.xml"),
+        ("매일경제 시티라이프",  "http://file.mk.co.kr/news/rss/rss_60000007.xml"),
     ],
 }
 
@@ -47,6 +48,38 @@ DAILY_QUOTA: dict[str, int] = {
     "라이프스타일/생산성": 1,
     "생활정보/절약":      1,
     "기타":               99,
+}
+
+RSS_SOURCES_EN: dict[str, list[tuple[str, str]]] = {
+    "Finance & Investing": [
+        ("Reuters Finance", "https://feeds.reuters.com/reuters/businessNews"),
+        ("Yahoo Finance",   "https://finance.yahoo.com/news/rssindex"),
+    ],
+    "Technology & AI": [
+        ("TechCrunch",  "https://techcrunch.com/feed/"),
+        ("The Verge",   "https://www.theverge.com/rss/index.xml"),
+    ],
+    "Health & Wellness": [
+        ("Healthline",  "https://www.healthline.com/rss/health-news"),
+        ("WebMD",       "https://rssfeeds.webmd.com/rss/rss.aspx?RSSSource=RSS_PUBLIC"),
+    ],
+    "Lifestyle & Productivity": [
+        ("Lifehacker",   "https://lifehacker.com/rss"),
+        ("Fast Company", "https://www.fastcompany.com/technology/rss"),
+    ],
+    "Travel & Culture": [
+        ("Lonely Planet",    "https://www.lonelyplanet.com/news/feed"),
+        ("Travel + Leisure", "https://www.travelandleisure.com/rss"),
+    ],
+}
+
+DAILY_QUOTA_EN: dict[str, int] = {
+    "Finance & Investing":      1,
+    "Technology & AI":          1,
+    "Health & Wellness":        1,
+    "Lifestyle & Productivity": 1,
+    "Travel & Culture":         1,
+    "Other":                    99,
 }
 
 _QUOTA_FILE   = "daily_quota.json"
@@ -122,6 +155,29 @@ _CATEGORY_HINTS: dict[str, set[str]] = {
         "절약", "생활비", "요금", "할인", "가계부", "공과금",
         "생활정보", "생필품", "마트", "쿠폰", "적립", "청구",
         "전기요금", "가스비", "통신비", "보험", "카드혜택",
+    },
+}
+
+_CATEGORY_HINTS_EN: dict[str, set[str]] = {
+    "Finance & Investing": {
+        "invest", "stock", "ETF", "saving", "budget", "retirement",
+        "crypto", "inflation", "interest rate", "dividend", "fund",
+    },
+    "Technology & AI": {
+        "AI", "ChatGPT", "smartphone", "app", "software", "cloud",
+        "cybersecurity", "robot", "electric vehicle", "chip", "GPU",
+    },
+    "Health & Wellness": {
+        "diet", "exercise", "mental health", "sleep", "nutrition",
+        "vitamin", "weight", "stress", "diabetes", "cancer",
+    },
+    "Lifestyle & Productivity": {
+        "productivity", "habit", "routine", "travel", "remote work",
+        "side hustle", "learning", "minimalism", "work life balance",
+    },
+    "Travel & Culture": {
+        "travel", "flight", "hotel", "destination", "budget travel",
+        "solo travel", "visa", "passport", "tourism", "culture",
     },
 }
 
@@ -283,6 +339,86 @@ def _collect_naver_category(per_query: int = 3) -> list[str]:
     return extract_keywords_from_titles(all_titles, top_n=per_query * 3)
 
 
+# ── 영어 블로그 키워드 수집 ──────────────────────────
+
+def _get_trending_keywords_en(count: int = 5) -> list[str]:
+    """
+    영어 블로그용 키워드 수집.
+    RSS_SOURCES_EN 기반으로 카테고리 균등 로테이션.
+    """
+    print("=" * 48)
+    print("Trend Keyword Collection (EN — 5 category rotation)")
+    print("=" * 48)
+
+    last_cat = _load_last_category()
+    quota_data = _load_quota()
+
+    all_cats      = list(RSS_SOURCES_EN.keys())
+    priority_cats = [c for c in all_cats if c != last_cat]
+    fallback_cats = [c for c in all_cats if c == last_cat]
+    ordered_cats  = priority_cats + fallback_cats
+
+    pool: list[tuple[str, str]] = []
+
+    for category in ordered_cats:
+        used  = quota_data["counts"].get(category, 0)
+        limit = DAILY_QUOTA_EN.get(category, 1)
+        if used >= limit:
+            print(f"\n  [{category}] Daily quota reached — skipping")
+            continue
+
+        print(f"\n  [{category}] Collecting RSS...")
+        sources = RSS_SOURCES_EN.get(category, [])
+        hints   = list(_CATEGORY_HINTS_EN.get(category, set()))
+        all_titles: list[str] = []
+
+        for name, url in sources:
+            try:
+                titles = fetch_rss_titles(url, display=20)
+                all_titles.extend(titles)
+                print(f"    [{name}] {len(titles)} collected")
+            except Exception as e:
+                print(f"    [{name}] Error: {e}")
+            time.sleep(0.3)
+
+        if all_titles and hints:
+            combined    = " ".join(all_titles).lower()
+            hint_counts = [(h, combined.count(h.lower()))
+                           for h in hints if combined.count(h.lower()) > 0]
+            hint_counts.sort(key=lambda x: -x[1])
+            for h, c in hint_counts[:2]:
+                pool.append((category, h))
+                print(f"    → '{h}' (matched {c}x)")
+
+    # 키워드 부족 시 카테고리명으로 보완
+    if len(pool) < count:
+        for cat in all_cats:
+            default_kw = cat.split("&")[0].strip()
+            if not any(kw == default_kw for _, kw in pool):
+                pool.append((cat, default_kw))
+
+    result: list[str] = []
+    seen_cats: dict[str, int] = {}
+    for category, kw in pool:
+        if kw in result:
+            continue
+        limit = DAILY_QUOTA_EN.get(category, 99)
+        if seen_cats.get(category, 0) >= limit:
+            continue
+        result.append(kw)
+        seen_cats[category] = seen_cats.get(category, 0) + 1
+        if len(result) >= count:
+            break
+
+    print(f"\nCollected keywords TOP {len(result)}:")
+    for i, kw in enumerate(result, 1):
+        cat = next((c for c, k in pool if k == kw), "?")
+        print(f"  {i}. {kw}  [{cat}]")
+
+    print("\nCollection complete!")
+    return result
+
+
 # ── 메인: 균등 로테이션 키워드 수집 ─────────────────
 
 def get_trending_keywords(count: int = None) -> list[str]:
@@ -293,6 +429,15 @@ def get_trending_keywords(count: int = None) -> list[str]:
     """
     if count is None:
         count = TREND_COUNT
+
+    # 블로그 언어에 따라 수집 방식 분기
+    try:
+        from config import LANGUAGE as _LANG
+    except ImportError:
+        _LANG = "ko"
+
+    if _LANG == "en":
+        return _get_trending_keywords_en(count)
 
     print("=" * 48)
     print("트렌드 키워드 수집 (5-카테고리 균등 로테이션)")
