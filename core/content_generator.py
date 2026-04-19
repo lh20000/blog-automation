@@ -248,8 +248,14 @@ def _build_prompt_ko(keyword: str) -> str:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ##TITLE##
-(클릭 유도 제목, 30자 이내, 키워드+수치 포함, 이모지 없이, "오호픽" 금지)
-예: "청년도약계좌 월 70만원 납입하면 5년 후 얼마?"
+(블로그 전용 지침의 제목 생성 규칙을 최우선 적용.
+ 글자 수: 공백 포함 35~55자.
+ 클릭 유도 패턴 중 주제에 맞는 것 선택:
+ · 궁금증 해소형: "~가 뭔지 이제 제대로 알아보겠습니다"
+ · 공감형: "나만 몰랐던 ~", "이걸 모르면 손해인 ~"
+ · 실용 정보형: "지금 당장 써먹을 수 있는 ~ 팁"
+ · 비교·추천형: "~ vs ~, 뭐가 더 좋을까?"
+ 수치 포함 권장 ("3가지 방법", "5분이면 OK") / 이모지 없이 / "오호픽" 금지)
 
 ##SLUG##
 (소문자 영문 + 하이픈, 최대 60자, 핵심 키워드 반영, 한국어 조사 제거
@@ -259,7 +265,15 @@ def _build_prompt_ko(keyword: str) -> str:
 (핵심 요약 3줄, 각 줄 앞에 ✅ 붙이기, 반드시 수치 포함, 줄바꿈으로 구분)
 
 ##INTRO##
-(수치/팩트로 시작, 2~3문장, <p> 태그 사용, 인사말/감성 표현 금지)
+(블로그 전용 지침의 공감형 도입부 규칙 최우선 적용.
+ 반드시 독자가 공감할 수 있는 상황·질문·경험으로 시작.
+ 예: "혹시 이런 경험 있으신가요?", "저도 예전에 이걸 몰라서...",
+     "봄만 되면 이유 없이 콧물이 흐르는 분들, 이 글 하나로 해결하세요."
+ 인사말("안녕하세요") 금지 / 2~3문장 / <p> 태그 사용
+ 절대 금지: "근육은 우리 몸의 체력에 직결됩니다" 같은 교과서 문장으로 시작
+ SEO 중요: 이 도입부 첫 문장이 구글 검색결과에 검색설명으로 자동 노출된다.
+ 반드시 독자가 클릭하고 싶어지는 문장으로 시작할 것.
+ 예: "봄만 되면 눈이 충혈되고 콧물이 줄줄 흐르는 분들, 이 글 하나로 해결하세요.")
 
 ##SECTION1_TITLE##
 (소제목 텍스트만, 이모지 없이, 수치 포함 권장)
@@ -416,7 +430,14 @@ OUTPUT FORMAT — use these markers exactly
 ==============================
 
 ##TITLE##
-(Click-worthy title, under 70 characters, keyword + number, no emoji, no "{BLOG_NAME}")
+(Apply blog-specific title rules from the guide above as top priority.
+ 45~65 characters. Choose the most fitting click-inducing pattern:
+ · Curiosity: "What Is [X]? A Simple Guide for Everyone"
+ · Life benefit: "How [X] Can Save You Time Every Week"
+ · Relatable: "You're Not Alone If You've Wondered About [X]"
+ · Comparison: "[X] vs [Y]: Which One Should You Actually Choose?"
+ · Quick tip: "5 [X] Tips You'll Wish You Knew Sooner"
+ Include specifics (numbers, year). No emoji. No "{BLOG_NAME}")
 
 ##SLUG##
 (lowercase English + hyphens only, max 60 characters,
@@ -426,7 +447,15 @@ reflect core keyword, example: "best-time-book-flights-2026")
 (3-line key summary, each line starts with ✅, must include numbers, separated by newlines)
 
 ##INTRO##
-(Start with a statistic/fact, 2–3 sentences, use <p> tags, no greeting or emotional language)
+(Apply blog-specific opening rules from the guide above as top priority.
+ Start with a relatable situation, question, or experience the reader connects with.
+ Examples: "Have you ever wondered...?", "You're not alone if...",
+           "If someone asked you to explain [X] in one sentence, could you?"
+ No greeting / 2~3 sentences / use <p> tags
+ NEVER start with a stiff factual sentence like "Muscle is an important element..."
+ SEO NOTE: This opening sentence appears as the meta description in Google search results.
+ Make it compelling enough that a reader will click through.
+ Example: "If your eyes get red and itchy every spring, this guide has your answer.")
 
 ##SECTION1_TITLE##
 (Subheading text only, no emoji, include a number where possible)
