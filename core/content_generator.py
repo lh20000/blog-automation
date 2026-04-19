@@ -411,7 +411,12 @@ OUTPUT FORMAT — use these markers exactly
  · Relatable: "You're Not Alone If You've Wondered About [X]"
  · Comparison: "[X] vs [Y]: Which One Should You Actually Choose?"
  · Quick tip: "5 [X] Tips You'll Wish You Knew Sooner"
- Include specifics (numbers, year). No emoji. No "{BLOG_NAME}")
+ Include specifics (numbers, year). No emoji. No "{BLOG_NAME}"
+ [FORBIDDEN PATTERNS]
+ - No stacking 2+ modifiers ("Complete", "Ultimate", "Full", "Only", "Best")
+ - No redundant combos like "Complete Guide" + "Full Breakdown" in same title
+   Bad: "The Only Guide to X You'll Ever Need: Complete 2026 Breakdown"
+   Good: "Why You Should Always Take Medicine With Water")
 
 ##SLUG##
 (lowercase English + hyphens only, max 60 characters,
@@ -429,7 +434,10 @@ reflect core keyword, example: "best-time-book-flights-2026")
  NEVER start with a stiff factual sentence like "Muscle is an important element..."
  SEO NOTE: This opening sentence appears as the meta description in Google search results.
  Make it compelling enough that a reader will click through.
- Example: "If your eyes get red and itchy every spring, this guide has your answer.")
+ Example: "If your eyes get red and itchy every spring, this guide has your answer."
+ NEVER start with: "X is an important aspect of daily life."
+ NEVER start with a dictionary-style definition.
+ Always start with a situation or question the reader has personally experienced.)
 
 ##SECTION1_TITLE##
 (Subheading text only, no emoji, include a number where possible)
@@ -438,6 +446,15 @@ reflect core keyword, example: "best-time-book-flights-2026")
 (2–3 paragraphs, specific numbers required)
 (Max 2–3 sentences per <p> tag; no <p>&nbsp;</p> or standalone <br>)
 (Use <ol style="line-height:2; padding-left:20px;"><li>...</li></ol> for any procedure)
+(Include ONE mid-section engagement hook — choose from this list, use a different one each article:
+ "Still with me? Good — here's where it gets useful."
+ "Starting to make sense?"
+ "Here's the key point most people miss."
+ "Now here's where things get interesting."
+ "Got it so far? Let's keep going."
+ "This next part is the most important."
+ "Here's what that means in practice."
+ → Never repeat the same phrase across articles.)
 
 ##TABLE_DATA##
 Output ONLY the JSON below. No other text, HTML tags, markdown, or code blocks.
@@ -479,7 +496,13 @@ Minimum 3 rows × 4 columns of comparison data.
 (Closing 1–2 sentences, use <p> tags, no emoji, give reader one specific action to take)
 
 ##TAGS##
-(5 tags, comma-separated, no "{BLOG_NAME}")
+(5 tags, comma-separated. Rules:
+ - No blog name
+ - No year-only tags ("2026", "2026 latest")
+ - No adjective-type tags ("complete guide", "full breakdown")
+ - Use searchable noun keywords only
+   Good: medicine, water intake, pill tips, health habits, drug absorption
+   Bad: 2026latest, complete guide, health tips 2026)
 """
 
 
