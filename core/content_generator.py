@@ -399,13 +399,24 @@ CORE RULES — MUST FOLLOW
     - ❌ FORBIDDEN: Do NOT write tip/warning content inside SECTION1_BODY or SECTION2_BODY
     - ✅ CORRECT: Write tip/warning content ONLY under ##TIPBOX## / ##WARNBOX## markers
 
+15. Everyday analogies — required when introducing a complex concept for the first time
+    - Format: "Think of it like [everyday analogy]. To put it more precisely..."
+    - Use in SECTION1_BODY on the first complex term
+
+16. Minimum 4 body sections — no exceptions
+    - Every article MUST include SECTION1, SECTION2, SECTION3, and SECTION4
+    - Each section must contain actual explanatory text (not just a table or list)
+    - SECTION3 must be a practical tips / action checklist with 4~5 concrete items
+    - SECTION4 must include a real-world application scenario and a concluding paragraph
+
 ==============================
 OUTPUT FORMAT — use these markers exactly
 ==============================
 
 ##TITLE##
 (Apply blog-specific title rules from the guide above as top priority.
- 45~65 characters. Choose the most fitting click-inducing pattern:
+ 45~65 characters. Write the COMPLETE title — never truncate, never end with "..."
+ Choose the most fitting click-inducing pattern:
  · Curiosity: "What Is [X]? A Simple Guide for Everyone"
  · Life benefit: "How [X] Can Save You Time Every Week"
  · Relatable: "You're Not Alone If You've Wondered About [X]"
@@ -427,17 +438,20 @@ reflect core keyword, example: "best-time-book-flights-2026")
 
 ##INTRO##
 (Apply blog-specific opening rules from the guide above as top priority.
- Start with a relatable situation, question, or experience the reader connects with.
+ Write 3~4 sentences of empathetic storytelling — in this order:
+   1. Open with a situation or question the reader has personally experienced.
+   2. Validate their feeling or show you understand the struggle.
+   3. Hint at the solution or benefit this article provides.
+   4. (Optional) Add a specific detail or number that hooks their attention.
  Examples: "Have you ever wondered...?", "You're not alone if...",
            "If someone asked you to explain [X] in one sentence, could you?"
- No greeting / 2~3 sentences / use <p> tags
- NEVER start with a stiff factual sentence like "Muscle is an important element..."
- SEO NOTE: This opening sentence appears as the meta description in Google search results.
- Make it compelling enough that a reader will click through.
- Example: "If your eyes get red and itchy every spring, this guide has your answer."
+ No greeting / use <p> tags
  NEVER start with: "X is an important aspect of daily life."
  NEVER start with a dictionary-style definition.
- Always start with a situation or question the reader has personally experienced.)
+ Always start with a situation or question the reader has personally experienced.
+ SEO NOTE: This opening sentence appears as the meta description in Google search results.
+ Make it compelling enough that a reader will click through.
+ Example: "If your eyes get red and itchy every spring, this guide has your answer.")
 
 ##SECTION1_TITLE##
 (Subheading text only, no emoji, include a number where possible)
@@ -445,6 +459,8 @@ reflect core keyword, example: "best-time-book-flights-2026")
 ##SECTION1_BODY##
 (2–3 paragraphs, specific numbers required)
 (Max 2–3 sentences per <p> tag; no <p>&nbsp;</p> or standalone <br>)
+(When a complex or unfamiliar concept first appears, explain it with an everyday analogy first.
+ Format: "Think of it like [everyday analogy]. To put it more precisely...")
 (Use <ol style="line-height:2; padding-left:20px;"><li>...</li></ol> for any procedure)
 (Include ONE mid-section engagement hook — choose from this list, use a different one each article:
  "Still with me? Good — here's where it gets useful."
@@ -477,6 +493,27 @@ Minimum 3 rows × 4 columns of comparison data.
 (Max 2–3 sentences per <p> tag; no <p>&nbsp;</p> or standalone <br>)
 (⚠️ Do NOT write 💡 or ⚠️ tip/warning content here — use ##TIPBOX## / ##WARNBOX## markers only)
 
+##SECTION3_TITLE##
+(A checklist or action-guide subheading, e.g. "5 Things You Can Do Starting Today")
+
+##SECTION3_BODY##
+(Practical tips and action checklist — minimum 4~5 concrete, immediately actionable items)
+(Each tip must be specific — no vague advice like "be consistent" or "do your research")
+(Use <ol style="line-height:2; padding-left:20px;"><li>...</li></ol> for numbered steps,
+ or <ul style="line-height:2; padding-left:20px;"><li>...</li></ul> for unordered tips)
+(Max 2–3 sentences per <p> tag; no <p>&nbsp;</p> or standalone <br>)
+(⚠️ Do NOT write 💡 or ⚠️ tip/warning content here — use ##TIPBOX## / ##WARNBOX## markers only)
+
+##SECTION4_TITLE##
+(A real-world application subheading, e.g. "How This Works in Everyday Life")
+
+##SECTION4_BODY##
+(2–3 paragraphs applying the topic to a real-life scenario with specific details)
+(Include at least one concrete real-world example or case — use real names, amounts, or dates)
+(End with a conclusion paragraph: the single most important takeaway and one action to do today.
+ Format: "Of all the steps above, [most important one] is the best place to start today.")
+(Max 2–3 sentences per <p> tag; no <p>&nbsp;</p> or standalone <br>)
+
 ##TIPBOX##
 (💡 Expert Tip — specific numbers + immediately actionable advice, 2–3 lines)
 
@@ -493,7 +530,10 @@ Minimum 3 rows × 4 columns of comparison data.
 ##FAQ_A3##
 
 ##OUTRO##
-(Closing 1–2 sentences, use <p> tags, no emoji, give reader one specific action to take)
+(Closing conclusion paragraph — 2~3 sentences, use <p> tags, no emoji.
+ Reinforce the main benefit of the article in one sentence.
+ Then give the reader ONE specific, concrete action to take right now.
+ Format: "Of everything covered here, [key insight] matters most. Start by [specific action] today.")
 
 ##TAGS##
 (5 tags, comma-separated. Rules:
@@ -742,6 +782,8 @@ def parse_text_response(raw: str) -> dict:
         "SECTION1_TITLE", "SECTION1_BODY",
         "TABLE_DATA",
         "SECTION2_TITLE", "SECTION2_BODY",
+        "SECTION3_TITLE", "SECTION3_BODY",
+        "SECTION4_TITLE", "SECTION4_BODY",
         "TIPBOX", "WARNBOX",
         "FAQ_Q1", "FAQ_A1", "FAQ_Q2", "FAQ_A2", "FAQ_Q3", "FAQ_A3",
         "OUTRO", "TAGS",
@@ -767,7 +809,7 @@ def parse_text_response(raw: str) -> dict:
         data[current] = "\n".join(buf).strip()
 
     # SECTION_BODY 첫 줄 H2 중복 제거 — 모델이 소제목 H2를 body 첫 줄에 반복 출력하는 경우
-    for body_key in ("SECTION1_BODY", "SECTION2_BODY"):
+    for body_key in ("SECTION1_BODY", "SECTION2_BODY", "SECTION3_BODY", "SECTION4_BODY"):
         if data[body_key]:
             data[body_key] = re.sub(
                 r'^\s*<h2[^>]*>.*?</h2>\s*', '',
@@ -775,7 +817,7 @@ def parse_text_response(raw: str) -> dict:
             ).strip()
 
     # 소제목에 모델이 <h2> 태그를 넣는 경우 제거 + 첫 줄만 사용 (본문 오버플로우 방지)
-    for key in ("SECTION1_TITLE", "SECTION2_TITLE"):
+    for key in ("SECTION1_TITLE", "SECTION2_TITLE", "SECTION3_TITLE", "SECTION4_TITLE"):
         cleaned = re.sub(r"</?h[1-6][^>]*>", "", data[key]).strip()
         data[key] = cleaned.split("\n")[0].strip()
 
@@ -798,7 +840,7 @@ def parse_text_response(raw: str) -> dict:
     # <p> 안에 <ol>/<ul>이 들어간 무효 HTML 수정 (LLM이 <ol>을 <p>로 감싸는 패턴)
     # 케이스1: <p>...</ol></p>  → </ol>
     # 케이스2: <p>...</ol> 뒤 </p> 없이 블록 요소 시작 → <p> 태그만 제거
-    for body_key in ("INTRO", "SECTION1_BODY", "SECTION2_BODY"):
+    for body_key in ("INTRO", "SECTION1_BODY", "SECTION2_BODY", "SECTION3_BODY", "SECTION4_BODY"):
         if data[body_key]:
             # </p> 로 닫힌 경우
             data[body_key] = re.sub(
@@ -817,7 +859,7 @@ def parse_text_response(raw: str) -> dict:
 
     # SECTION_BODY 안 <ol>/<ul>이 ##TIPBOX## 앞에서 잘린 경우 닫힘 태그 보완
     # + TIPBOX/WARNBOX 앞에 잔여 리스트 태그 제거
-    for body_key in ("SECTION1_BODY", "SECTION2_BODY"):
+    for body_key in ("SECTION1_BODY", "SECTION2_BODY", "SECTION3_BODY", "SECTION4_BODY"):
         body = data[body_key]
         open_ol = len(re.findall(r'<ol[\s>]', body, re.I)) - len(re.findall(r'</ol>', body, re.I))
         open_ul = len(re.findall(r'<ul[\s>]', body, re.I)) - len(re.findall(r'</ul>', body, re.I))
@@ -844,14 +886,14 @@ def parse_text_response(raw: str) -> dict:
         data[box_key] = content.strip()
 
     # 모든 본문 섹션에서 <b>/<strong> HTML 볼드 태그 제거 (CSS로 처리)
-    for key in ("SUMMARY", "INTRO", "SECTION1_BODY", "SECTION2_BODY", "OUTRO"):
+    for key in ("SUMMARY", "INTRO", "SECTION1_BODY", "SECTION2_BODY", "SECTION3_BODY", "SECTION4_BODY", "OUTRO"):
         if data[key]:
             data[key] = re.sub(r'</?(?:b|strong)(?:\s[^>]*)?>', '', data[key])
 
     # SECTION_BODY에 중복 삽입된 팁/주의 박스 마크다운 텍스트 제거
     # Gemini가 "💡 **전문가 팁**..." 를 SECTION_BODY 안에 직접 쓰고
     # 동시에 ##TIPBOX## 아래에도 출력하는 경우를 방어적으로 제거
-    for key in ("SECTION1_BODY", "SECTION2_BODY"):
+    for key in ("SECTION1_BODY", "SECTION2_BODY", "SECTION3_BODY", "SECTION4_BODY"):
         if data[key]:
             # **마크다운 볼드** 제거 (SECTION_BODY는 별도 처리 없어 여기서 수행)
             data[key] = re.sub(r'\*\*([^*]+)\*\*', r'\1', data[key])
@@ -864,17 +906,17 @@ def parse_text_response(raw: str) -> dict:
             data[key] = re.sub(r'(?m)^[💡⚠️][^\n]*\n?', '', data[key])
 
     # 본문 섹션 문단 후처리 (4문장 이상 → 2~3문장씩 새 <p> 분리)
-    for key in ("INTRO", "SECTION1_BODY", "SECTION2_BODY"):
+    for key in ("INTRO", "SECTION1_BODY", "SECTION2_BODY", "SECTION3_BODY", "SECTION4_BODY"):
         if data[key]:
             data[key] = _split_long_paragraphs(data[key])
 
     # <h3> 뒤 나오는 태그 없는 텍스트를 <p>로 감싸기
-    for key in ("SECTION1_BODY", "SECTION2_BODY"):
+    for key in ("SECTION1_BODY", "SECTION2_BODY", "SECTION3_BODY", "SECTION4_BODY"):
         if data[key]:
             data[key] = _wrap_text_after_h3(data[key])
 
     # <p>&nbsp;</p> 및 단독 <br> 태그 제거
-    for key in ("INTRO", "SECTION1_BODY", "SECTION2_BODY", "OUTRO"):
+    for key in ("INTRO", "SECTION1_BODY", "SECTION2_BODY", "SECTION3_BODY", "SECTION4_BODY", "OUTRO"):
         if data[key]:
             data[key] = _remove_forbidden_tags(data[key])
 
@@ -1616,6 +1658,8 @@ def assemble_html(d: dict, images: list[str | None]) -> str:
     # 빈 H2 태그 방지 — Gemini가 빈 값 반환 시 언어별 폴백 제목 사용
     section1_title = d["SECTION1_TITLE"].strip() or ("Key Information" if LANGUAGE == "en" else "핵심 정보")
     section2_title = d["SECTION2_TITLE"].strip() or ("Practical Tips & Takeaways" if LANGUAGE == "en" else "실용 팁 & 정리")
+    section3_title = d.get("SECTION3_TITLE", "").strip() or ("Action Checklist" if LANGUAGE == "en" else "실천 체크리스트")
+    section4_title = d.get("SECTION4_TITLE", "").strip() or ("Real-World Application" if LANGUAGE == "en" else "실생활 활용")
 
     html = ""
     html += summary_box(d["SUMMARY"])
@@ -1643,6 +1687,18 @@ def assemble_html(d: dict, images: list[str | None]) -> str:
     )
     html += _style_inline_tables(d["SECTION2_BODY"]) + "\n"
     html += img_tag(img2, section2_title)
+    if d.get("SECTION3_BODY", "").strip():
+        html += (
+            f'<h2 style="margin-top:32px; margin-bottom:14px; font-size:1.3em; '
+            f'color:#1a1a1a;">{section3_title}</h2>\n'
+        )
+        html += _style_inline_tables(d["SECTION3_BODY"]) + "\n"
+    if d.get("SECTION4_BODY", "").strip():
+        html += (
+            f'<h2 style="margin-top:32px; margin-bottom:14px; font-size:1.3em; '
+            f'color:#1a1a1a;">{section4_title}</h2>\n'
+        )
+        html += _style_inline_tables(d["SECTION4_BODY"]) + "\n"
     html += tip_box(d["TIPBOX"])
     if d.get("WARNBOX", "").strip():
         html += warn_box(d["WARNBOX"])
