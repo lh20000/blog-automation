@@ -75,12 +75,12 @@ def run_writer(keyword: str = None) -> dict | None:
     키워드 수집 + 콘텐츠 생성 후 draft_output.json 저장.
     keyword 미지정 시 RSS/네이버에서 자동 수집.
     """
-    from trend_collector import get_trending_keywords
     from content_generator import generate_blog_post
 
     # ── 키워드 결정 ──────────────────────────
     if not keyword:
         print("\n[Writer] 트렌드 키워드 수집 중...")
+        from trend_collector import get_trending_keywords
         keywords = get_trending_keywords(count=5)
         if not keywords:
             print("[Writer] ❌ 키워드 수집 실패")

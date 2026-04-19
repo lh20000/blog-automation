@@ -11,7 +11,12 @@ import requests
 import xml.etree.ElementTree as ET
 from collections import Counter
 from datetime import date
-from config import NAVER_CLIENT_ID, NAVER_CLIENT_SECRET, TREND_COUNT
+from config import TREND_COUNT
+try:
+    from config import NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
+except ImportError:
+    NAVER_CLIENT_ID = ""
+    NAVER_CLIENT_SECRET = ""
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
