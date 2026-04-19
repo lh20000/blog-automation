@@ -597,19 +597,38 @@ def _generate_gemini(keyword: str) -> dict | None:
     prompt = _build_prompt(keyword)
 
     import time
+
+    _RETRY_WAITS = [10, 30, 60]  # 1차 10초, 2차 30초, 3차 60초
+
+    def _is_retryable(e: Exception) -> bool:
+        msg = str(e).lower()
+        return any(x in msg for x in (
+            "503", "429", "rate", "quota",
+            "service unavailable", "resource exhausted",
+        ))
+
     models_to_try = list(dict.fromkeys(FALLBACK_MODELS))
-    for attempt, model in enumerate(models_to_try, 1):
-        try:
-            if attempt > 1:
-                wait = 20 * (attempt - 1)
-                print(f"  재시도 {attempt}회 (모델: {model}, {wait}초 대기 중...)")
-                time.sleep(wait)
-            response = client.models.generate_content(model=model, contents=prompt)
-            if attempt > 1:
-                print(f"  모델 '{model}'으로 생성 성공")
-            return parse_text_response(response.text)
-        except Exception as e:
-            print(f"  텍스트 생성 오류 (모델: {model}): {e}")
+    for model_idx, model in enumerate(models_to_try, 1):
+        if model_idx > 1:
+            wait = 20 * (model_idx - 1)
+            print(f"  다음 모델 시도 {model_idx}회 (모델: {model}, {wait}초 대기 중...)")
+            time.sleep(wait)
+
+        for retry in range(len(_RETRY_WAITS) + 1):
+            try:
+                response = client.models.generate_content(model=model, contents=prompt)
+                if model_idx > 1 or retry > 0:
+                    print(f"  모델 '{model}'으로 생성 성공")
+                return parse_text_response(response.text)
+            except Exception as e:
+                if retry < len(_RETRY_WAITS) and _is_retryable(e):
+                    wait_sec = _RETRY_WAITS[retry]
+                    print(f"  [Gemini] {type(e).__name__} → {wait_sec}초 후 재시도 ({retry + 1}/3)...")
+                    time.sleep(wait_sec)
+                else:
+                    print(f"  텍스트 생성 오류 (모델: {model}): {e}")
+                    break  # 이 모델 포기 → 다음 모델로
+
     return None
 
 
