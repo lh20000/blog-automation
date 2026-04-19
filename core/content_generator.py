@@ -1264,8 +1264,34 @@ def tags_to_image_queries(tags: list[str], keyword: str = "") -> list[str]:
         except Exception:
             return []
 
-    # ── q1: 메인 키워드 고정 ──────────────────────────────────
+    # ── q1: 메인 키워드 고정 (단일 단어면 태그로 문맥 보강) ──────
     kw_words = _to_en_words(kw) if kw else []
+
+    # 영어 단어 1~2개짜리 키워드는 다의어 문제가 생길 수 있음.
+    # 예: "stock" → Pixabay가 요리용 육수/향신료 이미지를 반환할 수 있음.
+    if LANGUAGE == "en" and len(kw_words) <= 2 and tags:
+        # 1순위: 키워드를 포함하는 태그 구(phrase) 사용
+        # 예: "stock" + 태그 "stock market" → kw_words = ["stock", "market"]
+        enriched_tag = next(
+            (t.strip() for t in tags
+             if kw.lower() in t.lower() and t.strip().lower() != kw.lower()),
+            None,
+        )
+        if enriched_tag:
+            enriched_words = _to_en_words(enriched_tag)
+            if enriched_words:
+                kw_words = enriched_words[:3]
+                print(f"  [이미지 키워드] '{kw}' → 태그 구 '{enriched_tag}'로 문맥 보강")
+        elif len(kw_words) == 1:
+            # 2순위: 첫 번째 specific 태그의 첫 단어를 키워드 뒤에 붙임
+            # 예: "stock" + 태그 "investment" → kw_words = ["stock", "investment"]
+            first_tag = next((t.strip() for t in tags if _is_specific_tag(t)), None)
+            if first_tag:
+                first_tag_words = _to_en_words(first_tag)
+                if first_tag_words and first_tag_words[0] not in kw_words:
+                    kw_words = kw_words + [first_tag_words[0]]
+                    print(f"  [이미지 키워드] '{kw}' → '{' '.join(kw_words)}'로 보강 (태그 첫 단어 추가)")
+
     q1 = " ".join(kw_words[:3]) if kw_words else fallback
 
     # ── q2, q3: 구체적 태그 기반 ────────────────────────────
