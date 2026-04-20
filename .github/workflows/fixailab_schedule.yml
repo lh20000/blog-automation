@@ -2,11 +2,9 @@ name: Fix AI Lab Auto Posting
 
 on:
   # ── Schedule (KST = UTC+9) — Uncomment to enable ─────────────
-  # schedule:
-  #   - cron: "0 23 * * *"   # KST 08:00
-  #   - cron: "0 2  * * *"   # KST 11:00
-  #   - cron: "0 6  * * *"   # KST 15:00
-  #   - cron: "0 11 * * *"   # KST 20:00
+  schedule:
+    - cron: "0 1 * * *"    # KST 10:00
+    - cron: "0 13 * * *"   # KST 22:00
 
   workflow_dispatch:
     inputs:

@@ -1285,7 +1285,7 @@ def tags_to_image_queries(tags: list[str], keyword: str = "") -> list[str]:
         elif len(kw_words) == 1:
             # 2순위: 첫 번째 specific 태그의 첫 단어를 키워드 뒤에 붙임
             # 예: "stock" + 태그 "investment" → kw_words = ["stock", "investment"]
-            first_tag = next((t.strip() for t in tags if _is_specific_tag(t)), None)
+            first_tag = next((t.strip() for t in tags if _is_specific_tag(t) and t.strip().lower() != kw.lower()), None)
             if first_tag:
                 first_tag_words = _to_en_words(first_tag)
                 if first_tag_words and first_tag_words[0] not in kw_words:

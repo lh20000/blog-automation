@@ -2,12 +2,9 @@ name: 오호픽 자동 포스팅
 
 on:
   # ── 스케줄 (한국시간 KST = UTC+9) ──────────────────────────────
-  # 활성화하려면 아래 주석 해제
-  # schedule:
-  #   - cron: "0 23 * * *"   # KST 08:00 (UTC 23:00)
-  #   - cron: "0 2  * * *"   # KST 11:00 (UTC 02:00)
-  #   - cron: "0 6  * * *"   # KST 15:00 (UTC 06:00)
-  #   - cron: "0 11 * * *"   # KST 20:00 (UTC 11:00)
+  schedule:
+    - cron: "0 23 * * *"   # KST 08:00
+    - cron: "0 11 * * *"   # KST 20:00
 
   # ── 수동 실행 ─────────────────────────────────────────────────
   workflow_dispatch:
@@ -65,8 +62,9 @@ jobs:
 
       - name: 상태 파일 초기화 (없을 경우)
         run: |
-          [ ! -f states/ohopick/published_log.json ] && echo '{"entries":[]}' > states/ohopick/published_log.json || true
-          [ ! -f states/ohopick/used_images.json ]   && echo '[]'             > states/ohopick/used_images.json   || true
+          [ ! -f states/ohopick/published_log.json ]    && echo '{"entries":[]}' > states/ohopick/published_log.json    || true
+          [ ! -f states/ohopick/used_images.json ]      && echo '[]'             > states/ohopick/used_images.json      || true
+          [ ! -f states/shared_used_keywords.json ]     && echo '{"entries":[]}' > states/shared_used_keywords.json     || true
 
       # ── 4. 오케스트레이터 실행 ────────────────────────────────
       - name: 오케스트레이터 실행
@@ -107,7 +105,8 @@ jobs:
           git config user.name  "ohopick-bot"
           git config user.email "bot@ohopick.com"
           git add states/ohopick/published_log.json states/ohopick/used_images.json
-          [ -f states/ohopick/rotation_state.json ] && git add states/ohopick/rotation_state.json || true
+          [ -f states/ohopick/rotation_state.json ]  && git add states/ohopick/rotation_state.json  || true
+          [ -f states/shared_used_keywords.json ]    && git add states/shared_used_keywords.json    || true
           if [ "${{ github.event.inputs.draft }}" = "true" ] && [ -f states/ohopick/draft_preview.json ]; then
             git add states/ohopick/draft_preview.json
           fi

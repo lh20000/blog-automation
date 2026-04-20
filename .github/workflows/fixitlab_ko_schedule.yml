@@ -2,11 +2,9 @@ name: 픽스IT연구소 자동 포스팅
 
 on:
   # ── 스케줄 (KST = UTC+9) — 활성화하려면 주석 해제 ────────────
-  # schedule:
-  #   - cron: "0 23 * * *"   # KST 08:00
-  #   - cron: "0 2  * * *"   # KST 11:00
-  #   - cron: "0 6  * * *"   # KST 15:00
-  #   - cron: "0 11 * * *"   # KST 20:00
+  schedule:
+    - cron: "30 23 * * *"  # KST 08:30
+    - cron: "30 11 * * *"  # KST 20:30
 
   workflow_dispatch:
     inputs:
@@ -57,6 +55,7 @@ jobs:
         run: |
           [ ! -f states/fixitlab_ko/published_log.json ] && echo '{"entries":[]}' > states/fixitlab_ko/published_log.json || true
           [ ! -f states/fixitlab_ko/used_images.json ]   && echo '[]'             > states/fixitlab_ko/used_images.json   || true
+          [ ! -f states/shared_used_keywords.json ]      && echo '{"entries":[]}' > states/shared_used_keywords.json      || true
 
       - name: 오케스트레이터 실행
         env:
@@ -88,6 +87,7 @@ jobs:
           git config user.email "bot@fixitlab-ko.com"
           git add states/fixitlab_ko/published_log.json states/fixitlab_ko/used_images.json
           [ -f states/fixitlab_ko/rotation_state.json ] && git add states/fixitlab_ko/rotation_state.json || true
+          [ -f states/shared_used_keywords.json ]       && git add states/shared_used_keywords.json       || true
           if ! git diff --staged --quiet; then
             git commit -m "chore: 픽스IT연구소 자동 발행 상태 업데이트 [skip ci]"
             git pull --rebase origin master

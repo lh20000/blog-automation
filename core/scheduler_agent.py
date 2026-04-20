@@ -13,14 +13,37 @@
 import sys
 import json
 import os
+import re
 from datetime import datetime, date, timedelta
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-LOG_FILE   = "published_log.json"
-MAX_DAILY  = 4           # 하루 최대 발행 수
-MIN_HOURS  = 3           # 최소 실행 간격 (시간)
-MAX_SAME_CATEGORY = 1    # 같은 카테고리 하루 최대 (초과 시 다른 카테고리 강제)
+# ── STATES_DIR 기반 LOG_FILE 경로 동적 설정 ──────────────
+try:
+    from config import STATES_DIR as _SD, LANGUAGE as _LANG
+except Exception:
+    _SD   = "."
+    _LANG = "ko"
+
+_BLOG_TARGET   = os.environ.get("BLOG_TARGET", "unknown").lower()
+LOG_FILE       = os.path.join(_SD, "published_log.json")
+SHARED_KW_FILE = os.path.join("states", "shared_used_keywords.json")
+
+MAX_DAILY         = 4   # 하루 최대 발행 수
+MIN_HOURS         = 3   # 최소 실행 간격 (시간)
+MAX_SAME_CATEGORY = 1   # 같은 카테고리 하루 최대 (초과 시 다른 카테고리 강제)
+
+# ── 유사도 체크용 불용어 ─────────────────────────────────
+_KO_STOP = {
+    "방법", "방식", "정보", "내용", "종류", "이유", "원인", "효과",
+    "비교", "추천", "설명", "정리", "가이드", "팁", "완전", "완벽",
+    "최신", "2026", "2025", "2024", "한국", "국내", "기본", "총정리",
+}
+_EN_STOP = {
+    "the", "how", "why", "what", "best", "top", "guide", "tips",
+    "ways", "list", "with", "for", "and", "use", "using", "your",
+    "you", "get", "make", "that", "this", "from", "about",
+}
 
 
 # ──────────────────────────────────────────
@@ -36,6 +59,7 @@ def _load_log() -> dict:
 
 
 def _save_log(log: dict) -> None:
+    os.makedirs(os.path.dirname(LOG_FILE) or ".", exist_ok=True)
     with open(LOG_FILE, "w", encoding="utf-8") as f:
         json.dump(log, f, ensure_ascii=False, indent=2)
 
@@ -46,7 +70,7 @@ def _today_entries(log: dict) -> list[dict]:
     return [e for e in log["entries"] if e.get("date") == today]
 
 
-def record_published(title: str, url: str, category: str = "기타") -> None:
+def record_published(title: str, url: str, category: str = "기타", keyword: str = "") -> None:
     """발행 완료 후 로그에 기록합니다. orchestrator.py에서 호출."""
     log = _load_log()
     log["entries"].append({
@@ -55,12 +79,119 @@ def record_published(title: str, url: str, category: str = "기타") -> None:
         "title":     title,
         "url":       url,
         "category":  category,
+        "keyword":   keyword,
     })
     # 30일 이상 된 기록 정리
     cutoff = str(date.today() - timedelta(days=30))
     log["entries"] = [e for e in log["entries"] if e.get("date", "") >= cutoff]
     _save_log(log)
     print(f"[Scheduler] 발행 기록 저장: {title}")
+
+
+# ──────────────────────────────────────────
+# 키워드 유사도 체크
+# ──────────────────────────────────────────
+
+def _extract_nouns(keyword: str) -> set[str]:
+    """키워드에서 핵심 명사 추출 (유사도 비교용)."""
+    if _LANG == "en" or not re.search(r"[가-힣]", keyword):
+        return {w for w in keyword.lower().split() if len(w) > 2 and w not in _EN_STOP}
+    return set(re.findall(r"[가-힣]{2,}", keyword)) - _KO_STOP
+
+
+def is_duplicate_keyword(new_kw: str, log: dict) -> tuple[bool, str]:
+    """
+    published_log의 기존 키워드와 유사도 체크.
+    핵심 명사 2개 이상 겹치면 중복으로 판단.
+    """
+    new_nouns = _extract_nouns(new_kw)
+    if len(new_nouns) < 2:
+        return False, ""
+
+    for entry in log.get("entries", []):
+        prev_kw = entry.get("keyword", "")
+        if not prev_kw or prev_kw.strip().lower() == new_kw.strip().lower():
+            continue
+        prev_nouns = _extract_nouns(prev_kw)
+        overlap = new_nouns & prev_nouns
+        if len(overlap) >= 2:
+            return True, f"'{prev_kw}'와 유사 (공통: {', '.join(sorted(overlap))})"
+    return False, ""
+
+
+def check_keyword_duplicate(new_kw: str) -> tuple[bool, str]:
+    """자가 블로그 published_log 기반 키워드 유사도 체크 (공개 인터페이스)."""
+    if not new_kw:
+        return False, ""
+    return is_duplicate_keyword(new_kw, _load_log())
+
+
+# ──────────────────────────────────────────
+# 블로그 간 공유 키워드 (한국어 블로그 전용)
+# ──────────────────────────────────────────
+
+def _load_shared_keywords() -> dict:
+    """
+    shared_used_keywords.json 로드.
+    구조: {"date": "YYYY-MM-DD", "keywords": [{"keyword": "...", "blog": "..."}]}
+    날짜가 오늘과 다르면 자동 초기화.
+    """
+    today = str(date.today())
+    try:
+        with open(SHARED_KW_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+        if data.get("date") != today:
+            return {"date": today, "keywords": []}
+        return data
+    except Exception:
+        return {"date": today, "keywords": []}
+
+
+def _save_shared_keywords(data: dict) -> None:
+    os.makedirs("states", exist_ok=True)
+    try:
+        with open(SHARED_KW_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"  [공유키워드] 저장 실패: {e}")
+
+
+def check_shared_keyword(new_kw: str) -> tuple[bool, str]:
+    """다른 한국어 블로그에서 오늘 유사 키워드 발행 여부 확인."""
+    if _LANG != "ko" or not new_kw:
+        return False, ""
+
+    data      = _load_shared_keywords()
+    new_nouns = _extract_nouns(new_kw)
+
+    for entry in data.get("keywords", []):
+        if entry.get("blog") == _BLOG_TARGET:
+            continue
+        prev_kw = entry.get("keyword", "")
+        if not prev_kw:
+            continue
+        if prev_kw.strip().lower() == new_kw.strip().lower():
+            return True, f"오늘 '{entry.get('blog')}'에서 동일 키워드 발행됨"
+        if len(new_nouns) >= 2:
+            prev_nouns = _extract_nouns(prev_kw)
+            overlap = new_nouns & prev_nouns
+            if len(overlap) >= 2:
+                return True, (
+                    f"오늘 '{entry.get('blog')}'에서 유사 키워드 '{prev_kw}' 발행됨 "
+                    f"(공통: {', '.join(sorted(overlap))})"
+                )
+    return False, ""
+
+
+def record_shared_keyword(keyword: str) -> None:
+    """발행 후 공유 키워드 풀에 기록. 한국어 블로그만."""
+    if _LANG != "ko" or not keyword:
+        return
+
+    data = _load_shared_keywords()
+    data["keywords"].append({"keyword": keyword, "blog": _BLOG_TARGET})
+    _save_shared_keywords(data)
+    print(f"  [공유키워드] 기록 완료: '{keyword}' ({_BLOG_TARGET})")
 
 
 # ──────────────────────────────────────────

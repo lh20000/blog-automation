@@ -2,12 +2,9 @@ name: ahapick Auto Posting
 
 on:
   # ── Schedule (Korean Time KST = UTC+9) ────────────────────────
-  # Uncomment to enable auto-posting
-  # schedule:
-  #   - cron: "0 23 * * *"   # KST 08:00 (UTC 23:00)
-  #   - cron: "0 2  * * *"   # KST 11:00 (UTC 02:00)
-  #   - cron: "0 6  * * *"   # KST 15:00 (UTC 06:00)
-  #   - cron: "0 11 * * *"   # KST 20:00 (UTC 11:00)
+  schedule:
+    - cron: "0 0 * * *"    # KST 09:00
+    - cron: "0 12 * * *"   # KST 21:00
 
   # ── Manual run ─────────────────────────────────────────────────
   workflow_dispatch:

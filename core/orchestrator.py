@@ -47,7 +47,10 @@ from writer_agent    import run_writer,    DRAFT_FILE
 from reviewer_agent  import run_reviewer,  REVIEWED_FILE
 from seo_agent       import run_seo,       SEO_FILE
 from publisher_agent import run_publisher
-from scheduler_agent import run_scheduler, record_published
+from scheduler_agent import (
+    run_scheduler, record_published,
+    check_keyword_duplicate, check_shared_keyword, record_shared_keyword,
+)
 
 TEMP_FILES = (DRAFT_FILE, REVIEWED_FILE, SEO_FILE)
 
@@ -120,6 +123,17 @@ def run_pipeline(keyword: str = None, force: bool = False, draft: bool = False) 
                 keyword = sched["force_keyword"]
                 print(f"[Orchestrator] 키워드 → '{keyword}' (카테고리 균형)")
 
+        # ── 키워드 중복/유사 체크 ─────────────────
+        if keyword:
+            dup, dup_reason = check_keyword_duplicate(keyword)
+            if dup:
+                print(f"[Orchestrator] ⏭️  키워드 스킵: '{keyword}' — {dup_reason}")
+                return None
+            shared_dup, shared_reason = check_shared_keyword(keyword)
+            if shared_dup:
+                print(f"[Orchestrator] ⏭️  키워드 스킵: '{keyword}' — {shared_reason}")
+                return None
+
         # ── Agent 1: Writer ───────────────────────
         _banner("Agent 1 — Writer  (콘텐츠 생성)")
         draft_data = run_writer(keyword)
@@ -168,7 +182,9 @@ def run_pipeline(keyword: str = None, force: bool = False, draft: bool = False) 
                 title=seo.get("title", ""),
                 url=result["url"],
                 category=category,
+                keyword=keyword or "",
             )
+            record_shared_keyword(keyword or "")
             from trend_collector import save_rotation_state
             save_rotation_state(category)
             print(f"[Orchestrator] 로테이션 상태 저장: '{category}'")
