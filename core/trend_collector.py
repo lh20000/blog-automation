@@ -4,9 +4,11 @@
 # =============================================
 
 import sys
+import os
 import time
 import json
 import re
+import random
 import requests
 import xml.etree.ElementTree as ET
 from collections import Counter
@@ -17,6 +19,14 @@ try:
 except ImportError:
     NAVER_CLIENT_ID = ""
     NAVER_CLIENT_SECRET = ""
+try:
+    from config import ALLOWED_CATEGORIES as _ALLOWED_CATEGORIES
+except ImportError:
+    _ALLOWED_CATEGORIES = None
+try:
+    from config import KEYWORD_POOL as _KEYWORD_POOL
+except ImportError:
+    _KEYWORD_POOL = None
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
@@ -25,19 +35,23 @@ RSS_SOURCES: dict[str, list[tuple[str, str]]] = {
     "재테크/투자": [
         ("연합뉴스 경제", "https://www.yna.co.kr/rss/economy.xml"),
         ("매일경제",     "https://www.mk.co.kr/rss/30200030/"),
+        ("매일경제 종합", "https://www.mk.co.kr/rss/30000001/"),
     ],
     "건강/wellness": [
         ("코메디닷컴",  "https://www.kormedi.com/feed/"),
         ("헬스조선",    "https://health.chosun.com/site/data/rss/rss.xml"),
         ("동아 건강",   "https://rss.donga.com/health.xml"),
+        ("연합 건강",   "https://www.yonhapnewstv.co.kr/category/news/healthscience/feed/"),
     ],
     "IT/테크": [
         ("전자신문 IT",  "https://rss.etnews.com/Section901.xml"),
         ("전자신문 SW",  "https://rss.etnews.com/Section903.xml"),
+        ("한국경제 IT",  "https://rss.hankyung.com/news/it.xml"),
     ],
     "라이프스타일/생산성": [
         ("연합뉴스 문화","https://www.yna.co.kr/rss/culture.xml"),
         ("여행신문",     "https://www.traveltimes.co.kr/rss/allArticle.xml"),
+        ("KBS 생활",     "https://news.kbs.co.kr/rss/rss.do?cate=life"),
     ],
     "생활정보/절약": [
         ("동아 생활정보",        "https://rss.donga.com/lifeinfo.xml"),
@@ -61,16 +75,23 @@ RSS_SOURCES_EN: dict[str, list[tuple[str, str]]] = {
         ("Yahoo Finance",   "https://finance.yahoo.com/news/rssindex"),
     ],
     "Technology & AI": [
-        ("TechCrunch",  "https://techcrunch.com/feed/"),
-        ("The Verge",   "https://www.theverge.com/rss/index.xml"),
+        ("TechCrunch",       "https://feeds.feedburner.com/TechCrunch"),
+        ("The Verge",        "https://www.theverge.com/rss/index.xml"),
+        ("BBC Tech",         "https://feeds.bbci.co.uk/news/technology/rss.xml"),
+        ("Ars Technica",     "http://feeds.arstechnica.com/arstechnica/index/"),
+        ("NYT Tech",         "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml"),
+        ("ScienceDaily Tech","https://www.sciencedaily.com/rss/top/technology.xml"),
     ],
     "Health & Wellness": [
-        ("Healthline",  "https://www.healthline.com/rss/health-news"),
-        ("WebMD",       "https://rssfeeds.webmd.com/rss/rss.aspx?RSSSource=RSS_PUBLIC"),
+        ("Healthline",         "https://www.healthline.com/rss/health-news"),
+        ("WebMD",              "https://rssfeeds.webmd.com/rss/rss.aspx?RSSSource=RSS_PUBLIC"),
+        ("BBC Health",         "https://feeds.bbci.co.uk/news/health/rss.xml"),
+        ("ScienceDaily Health","https://www.sciencedaily.com/rss/top/health.xml"),
     ],
     "Lifestyle & Productivity": [
         ("Lifehacker",   "https://lifehacker.com/rss"),
         ("Fast Company", "https://www.fastcompany.com/technology/rss"),
+        ("BBC World",    "https://feeds.bbci.co.uk/news/world/rss.xml"),
     ],
     "Travel & Culture": [
         ("Lonely Planet",    "https://www.lonelyplanet.com/news/feed"),
@@ -87,8 +108,13 @@ DAILY_QUOTA_EN: dict[str, int] = {
     "Other":                    99,
 }
 
-_QUOTA_FILE   = "daily_quota.json"
-ROTATION_FILE = "rotation_state.json"
+try:
+    from config import STATES_DIR as _STATES_DIR
+except ImportError:
+    _STATES_DIR = "."
+
+_QUOTA_FILE   = os.path.join(_STATES_DIR, "daily_quota.json")
+ROTATION_FILE = os.path.join(_STATES_DIR, "rotation_state.json")
 
 
 # ── 불용어 / 차단어 ────────────────────────────────
@@ -344,6 +370,108 @@ def _collect_naver_category(per_query: int = 3) -> list[str]:
     return extract_keywords_from_titles(all_titles, top_n=per_query * 3)
 
 
+# ── KEYWORD_POOL 우선 수집 (ALLOWED_CATEGORIES 설정 블로그 전용) ──────
+
+def _load_used_keywords() -> set[str]:
+    """published_log.json에서 이미 사용한 키워드 목록 로드."""
+    try:
+        from config import STATES_DIR as _sd
+    except ImportError:
+        return set()
+    try:
+        with open(os.path.join(_sd, "published_log.json"), encoding="utf-8") as f:
+            data = json.load(f)
+        return {e.get("keyword", "").strip().lower()
+                for e in data.get("entries", []) if e.get("keyword")}
+    except Exception:
+        return set()
+
+
+def _collect_with_pool_priority_ko() -> list[str]:
+    """
+    한국어 ALLOWED_CATEGORIES 블로그용.
+    1순위: KEYWORD_POOL (published_log 중복 제외)
+    2순위: ALLOWED_CATEGORIES RSS에서 힌트 1개 보조
+    반환: [pool_kw, rss_kw] 또는 [pool_kw]
+    """
+    used = _load_used_keywords()
+    candidates = [k for k in _KEYWORD_POOL if k.lower() not in used]
+    if not candidates:
+        candidates = list(_KEYWORD_POOL)
+        print("  [KEYWORD_POOL] 전체 사용됨 — 재사용")
+    pool_kw = random.choice(candidates)
+    print(f"  [KEYWORD_POOL 1순위] → '{pool_kw}'")
+
+    result = [pool_kw]
+
+    for category in _ALLOWED_CATEGORIES:
+        sources = RSS_SOURCES.get(category, [])
+        hints   = list(_CATEGORY_HINTS.get(category, set()))
+        all_titles: list[str] = []
+        for name, url in sources:
+            try:
+                titles = fetch_rss_titles(url, display=30)
+                all_titles.extend(titles)
+                print(f"    [{name}] {len(titles)}개 수집")
+            except Exception as e:
+                print(f"    [{name}] 오류: {e}")
+            time.sleep(0.3)
+        if all_titles and hints:
+            combined    = " ".join(all_titles)
+            hint_counts = [(h, combined.count(h)) for h in hints if combined.count(h) > 0]
+            hint_counts.sort(key=lambda x: -x[1])
+            for h, _ in hint_counts[:1]:
+                if h != pool_kw:
+                    result.append(h)
+                    print(f"  [RSS 2순위] → '{h}'")
+                    break
+
+    return result
+
+
+def _collect_with_pool_priority_en() -> list[str]:
+    """
+    영어 ALLOWED_CATEGORIES 블로그용.
+    1순위: KEYWORD_POOL (published_log 중복 제외)
+    2순위: ALLOWED_CATEGORIES RSS에서 힌트 1개 보조
+    반환: [pool_kw, rss_kw] 또는 [pool_kw]
+    """
+    used = _load_used_keywords()
+    candidates = [k for k in _KEYWORD_POOL if k.lower() not in used]
+    if not candidates:
+        candidates = list(_KEYWORD_POOL)
+        print("  [KEYWORD_POOL] All used — reusing")
+    pool_kw = random.choice(candidates)
+    print(f"  [KEYWORD_POOL 1st priority] → '{pool_kw}'")
+
+    result = [pool_kw]
+
+    for category in _ALLOWED_CATEGORIES:
+        sources = RSS_SOURCES_EN.get(category, [])
+        hints   = list(_CATEGORY_HINTS_EN.get(category, set()))
+        all_titles: list[str] = []
+        for name, url in sources:
+            try:
+                titles = fetch_rss_titles(url, display=20)
+                all_titles.extend(titles)
+                print(f"    [{name}] {len(titles)} collected")
+            except Exception as e:
+                print(f"    [{name}] Error: {e}")
+            time.sleep(0.3)
+        if all_titles and hints:
+            combined    = " ".join(all_titles).lower()
+            hint_counts = [(h, combined.count(h.lower()))
+                           for h in hints if combined.count(h.lower()) > 0]
+            hint_counts.sort(key=lambda x: -x[1])
+            for h, c in hint_counts[:1]:
+                if h != pool_kw:
+                    result.append(h)
+                    print(f"  [RSS 2nd priority] → '{h}' (matched {c}x)")
+                    break
+
+    return result
+
+
 # ── 영어 블로그 키워드 수집 ──────────────────────────
 
 def _get_trending_keywords_en(count: int = 5) -> list[str]:
@@ -355,6 +483,15 @@ def _get_trending_keywords_en(count: int = 5) -> list[str]:
     print("Trend Keyword Collection (EN — 5 category rotation)")
     print("=" * 48)
 
+    if _ALLOWED_CATEGORIES and _KEYWORD_POOL:
+        print(f"  [Mode] KEYWORD_POOL-first (allowed: {_ALLOWED_CATEGORIES})")
+        result = _collect_with_pool_priority_en()
+        print(f"\nCollected keywords TOP {len(result)}:")
+        for i, kw in enumerate(result, 1):
+            print(f"  {i}. {kw}")
+        print("\nCollection complete!")
+        return result
+
     last_cat = _load_last_category()
     quota_data = _load_quota()
 
@@ -362,6 +499,10 @@ def _get_trending_keywords_en(count: int = 5) -> list[str]:
     priority_cats = [c for c in all_cats if c != last_cat]
     fallback_cats = [c for c in all_cats if c == last_cat]
     ordered_cats  = priority_cats + fallback_cats
+
+    if _ALLOWED_CATEGORIES:
+        ordered_cats = [c for c in ordered_cats if c in _ALLOWED_CATEGORIES]
+        print(f"  [ALLOWED_CATEGORIES] Filtering to: {_ALLOWED_CATEGORIES}")
 
     pool: list[tuple[str, str]] = []
 
@@ -448,6 +589,15 @@ def get_trending_keywords(count: int = None) -> list[str]:
     print("트렌드 키워드 수집 (5-카테고리 균등 로테이션)")
     print("=" * 48)
 
+    if _ALLOWED_CATEGORIES and _KEYWORD_POOL:
+        print(f"  [모드] KEYWORD_POOL 1순위 (허용 카테고리: {_ALLOWED_CATEGORIES})")
+        result = _collect_with_pool_priority_ko()
+        print(f"\n수집된 키워드 TOP {len(result)}:")
+        for i, kw in enumerate(result, 1):
+            print(f"  {i}위: {kw}")
+        print("\n수집 완료!")
+        return result
+
     last_cat = _load_last_category()
     if last_cat:
         print(f"  [로테이션] 직전 발행 카테고리: '{last_cat}' → 후순위 처리")
@@ -459,6 +609,10 @@ def get_trending_keywords(count: int = None) -> list[str]:
     priority_cats = [c for c in all_cats if c != last_cat]
     fallback_cats = [c for c in all_cats if c == last_cat]
     ordered_cats  = priority_cats + fallback_cats
+
+    if _ALLOWED_CATEGORIES:
+        ordered_cats = [c for c in ordered_cats if c in _ALLOWED_CATEGORIES]
+        print(f"  [ALLOWED_CATEGORIES] 필터링: {_ALLOWED_CATEGORIES}")
 
     pool: list[tuple[str, str]] = []
 
@@ -473,11 +627,12 @@ def get_trending_keywords(count: int = None) -> list[str]:
             pool.append((category, kw))
             print(f"    → '{kw}'")
 
-    # 네이버 보조
-    print("\n  [기타/보조] 네이버 API 수집 중...")
-    naver_kws = _collect_naver_category(per_query=2)
-    for kw in naver_kws:
-        pool.append(("기타", kw))
+    # 네이버 보조 (ALLOWED_CATEGORIES 미설정 시에만 실행)
+    if not _ALLOWED_CATEGORIES:
+        print("\n  [기타/보조] 네이버 API 수집 중...")
+        naver_kws = _collect_naver_category(per_query=2)
+        for kw in naver_kws:
+            pool.append(("기타", kw))
 
     if not pool:
         print("\n키워드 수집 실패.")

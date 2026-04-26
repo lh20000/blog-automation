@@ -12,6 +12,7 @@ import random
 import requests
 from PIL import Image
 from google import genai
+from google.genai import types as genai_types
 import cloudinary
 import cloudinary.uploader
 
@@ -171,7 +172,12 @@ def _build_prompt_ko(keyword: str) -> str:
      반드시 독자가 클릭하고 싶어지는 문장으로 시작할 것
 
 8. 분량: 공백 제외 {min_chars} 이상 (절대 축소 불가)
+   본문 텍스트는 공백 제외 반드시 1,500자 이상 작성할 것.
    - 반복·중복 표현으로 채우지 말 것. 새 정보·수치로 채울 것
+   - 섹션을 5개 이상 작성하고, 섹션당 최소 3문단 이상 작성할 것
+   ★ 반드시 2,000자 이상 작성하시오.
+   ★ 작성 완료 전 글자수를 확인하시오.
+   ★ 2,000자 미만이면 각 섹션을 더 상세히 보완하시오.
 
 9. 문단 나누기 — 모바일 가독성 최우선
    - 문단은 최대 2~3문장. <p> 태그 안에 3문장 초과 절대 금지
@@ -242,7 +248,7 @@ def _build_prompt_ko(keyword: str) -> str:
 (소제목 텍스트만. 이모지 없이. 수치 포함 권장)
 
 ##SECTION1_BODY##
-(본문 2~3단락. 구체적 수치 포함.
+(본문 최소 3단락 이상. 구체적 수치 포함.
  각 <p> 태그 안에 최대 2~3문장.
  어려운 개념 첫 등장 시 반드시 일상 비유로 먼저 설명.
  형식: "이건 마치 [일상 비유]와 같아요. 조금 더 자세히 말씀드리면..."
@@ -276,12 +282,41 @@ def _build_prompt_ko(keyword: str) -> str:
 (소제목 텍스트만. 이모지 없이)
 
 ##SECTION2_BODY##
-(본문 2~3단락. 실용 팁 3개 이상.
+(본문 최소 3단락 이상. 실용 팁 3개 이상.
  "오늘부터 바로 써먹을 수 있어요", "이렇게 해보세요" 표현 적극 활용.
  각 <p> 태그 안에 최대 2~3문장.
  절차/단계가 있으면 반드시 <ol> 사용.
  ⚠️ 절대 금지: 이 섹션에 💡 또는 ⚠️ 내용 직접 삽입 금지.
  팁/주의 내용은 반드시 ##TIPBOX## / ##WARNBOX## 마커에만 작성)
+
+##SECTION3_TITLE##
+(소제목 텍스트만. 이모지 없이. 단계별 가이드 또는 체크리스트 형태 권장)
+
+##SECTION3_BODY##
+(본문 최소 3단락 이상. 즉시 실행 가능한 구체적 행동 지침 4~5가지.
+ 각 팁은 수치·조건·상황이 포함된 구체적 내용으로 작성. 모호한 조언 금지.
+ <ol style="line-height:2; padding-left:20px;"><li>...</li></ol> 또는
+ <ul style="line-height:2; padding-left:20px;"><li>...</li></ul> 사용.
+ 각 <p> 태그 안에 최대 2~3문장.
+ ⚠️ 절대 금지: 이 섹션에 💡 또는 ⚠️ 내용 직접 삽입 금지)
+
+##SECTION4_TITLE##
+(소제목 텍스트만. 이모지 없이. 실생활 적용 또는 심화 내용)
+
+##SECTION4_BODY##
+(본문 최소 3단락 이상. 실생활 적용 시나리오 또는 심화 정보.
+ 실제 이름·금액·날짜가 포함된 구체적 사례 최소 1개 포함.
+ 각 <p> 태그 안에 최대 2~3문장.
+ ⚠️ 절대 금지: 이 섹션에 💡 또는 ⚠️ 내용 직접 삽입 금지)
+
+##SECTION5_TITLE##
+(소제목 텍스트만. 이모지 없이. 자주 하는 실수 또는 주의사항 정리 권장)
+
+##SECTION5_BODY##
+(본문 최소 3단락 이상. 독자가 놓치기 쉬운 함정·조건·오해 정리.
+ 구체적 수치와 사례 포함. "이 부분 꼭 확인하세요" 표현 적극 활용.
+ 각 <p> 태그 안에 최대 2~3문장.
+ ⚠️ 절대 금지: 이 섹션에 💡 또는 ⚠️ 내용 직접 삽입 금지)
 
 ##TIPBOX##
 (💡 핵심 실용 팁 — 구체적 수치와 즉시 실행 가능한 행동 지침. 2~3줄)
@@ -375,7 +410,13 @@ CORE RULES — MUST FOLLOW
      blog-specific guide explicitly calls for it.
    - Default: use a relatable, empathetic opening.
 
-8. Minimum 2,000 words of pure text (excluding images)
+8. Minimum 1,200 words of pure text (excluding images)
+   The total body text must be at least 1,200 words excluding whitespace.
+   - Do NOT pad with repetition. Fill every paragraph with new information, data, or examples.
+   - Write at least 5 body sections, each with a minimum of 3 paragraphs.
+   ★ You MUST write at least 1,500 words.
+   ★ Count your words before finishing.
+   ★ Do not stop writing until you reach 1,500 words.
 
 9. Paragraph formatting — mobile readability first
    - Max 2–3 sentences per <p> tag
@@ -457,7 +498,7 @@ reflect core keyword, example: "best-time-book-flights-2026")
 (Subheading text only, no emoji, include a number where possible)
 
 ##SECTION1_BODY##
-(2–3 paragraphs, specific numbers required)
+(Minimum 3 paragraphs required, specific numbers required)
 (Max 2–3 sentences per <p> tag; no <p>&nbsp;</p> or standalone <br>)
 (When a complex or unfamiliar concept first appears, explain it with an everyday analogy first.
  Format: "Think of it like [everyday analogy]. To put it more precisely...")
@@ -489,7 +530,7 @@ Minimum 3 rows × 4 columns of comparison data.
 (Subheading text only, no emoji)
 
 ##SECTION2_BODY##
-(2–3 paragraphs, at least 3 practical tips)
+(Minimum 3 paragraphs required, at least 3 practical tips)
 (Max 2–3 sentences per <p> tag; no <p>&nbsp;</p> or standalone <br>)
 (⚠️ Do NOT write 💡 or ⚠️ tip/warning content here — use ##TIPBOX## / ##WARNBOX## markers only)
 
@@ -497,7 +538,7 @@ Minimum 3 rows × 4 columns of comparison data.
 (A checklist or action-guide subheading, e.g. "5 Things You Can Do Starting Today")
 
 ##SECTION3_BODY##
-(Practical tips and action checklist — minimum 4~5 concrete, immediately actionable items)
+(Minimum 3 paragraphs required — practical tips and action checklist with 4~5 concrete, immediately actionable items)
 (Each tip must be specific — no vague advice like "be consistent" or "do your research")
 (Use <ol style="line-height:2; padding-left:20px;"><li>...</li></ol> for numbered steps,
  or <ul style="line-height:2; padding-left:20px;"><li>...</li></ul> for unordered tips)
@@ -508,7 +549,7 @@ Minimum 3 rows × 4 columns of comparison data.
 (A real-world application subheading, e.g. "How This Works in Everyday Life")
 
 ##SECTION4_BODY##
-(2–3 paragraphs applying the topic to a real-life scenario with specific details)
+(Minimum 3 paragraphs required — apply the topic to a real-life scenario with specific details)
 (Include at least one concrete real-world example or case — use real names, amounts, or dates)
 (End with a conclusion paragraph: the single most important takeaway and one action to do today.
  Format: "Of all the steps above, [most important one] is the best place to start today.")
@@ -616,9 +657,21 @@ def _generate_gemini(keyword: str) -> dict | None:
 
         for retry in range(len(_RETRY_WAITS) + 1):
             try:
-                response = client.models.generate_content(model=model, contents=prompt)
+                response = client.models.generate_content(
+                    model=model,
+                    contents=prompt,
+                    config=genai_types.GenerateContentConfig(max_output_tokens=8192),
+                )
                 if model_idx > 1 or retry > 0:
                     print(f"  모델 '{model}'으로 생성 성공")
+                meta = response.usage_metadata
+                if meta:
+                    print(
+                        f"  [Gemini] 토큰 — "
+                        f"입력 {meta.prompt_token_count:,} / "
+                        f"출력 {meta.candidates_token_count:,} / "
+                        f"합계 {meta.total_token_count:,}"
+                    )
                 return parse_text_response(response.text)
             except Exception as e:
                 if retry < len(_RETRY_WAITS) and _is_retryable(e):
@@ -1231,6 +1284,20 @@ def _is_specific_tag(tag: str) -> bool:
     return True
 
 
+_FORBIDDEN_IMAGE_KEYWORDS = [
+    # 한국어
+    "북한", "김정은", "공산당", "시위", "전쟁", "폭발", "시체", "테러", "총기",
+    # 영어
+    "north korea", "kim jong", "communist", "riot", "explosion",
+    "corpse", "terror", "gun violence", "war zone",
+]
+
+
+def _has_forbidden_image_keyword(query: str) -> bool:
+    q = query.lower()
+    return any(kw.lower() in q for kw in _FORBIDDEN_IMAGE_KEYWORDS)
+
+
 def tags_to_image_queries(tags: list[str], keyword: str = "") -> list[str]:
     """
     이미지 검색용 쿼리 3개 생성.
@@ -1239,6 +1306,7 @@ def tags_to_image_queries(tags: list[str], keyword: str = "") -> list[str]:
     q3 — 태그 기반 (첫 단어 + 컨텍스트)
     영어 블로그: 번역 없이 그대로 사용.
     한국어 블로그: deep_translator로 영문 변환.
+    금지 키워드 포함 시 메인 키워드만으로 fallback.
     """
     fallback = "lifestyle daily" if LANGUAGE == "en" else "korea lifestyle daily"
     kw = keyword.strip()
@@ -1300,7 +1368,11 @@ def tags_to_image_queries(tags: list[str], keyword: str = "") -> list[str]:
         print(f"  [이미지 키워드] 구체적 태그 없음 → 키워드만으로 3개 생성")
         q2 = " ".join(kw_words[:2]) if len(kw_words) >= 2 else q1
         q3 = kw_words[0] if kw_words else fallback
-        queries = [q1, q2, q3]
+        safe_fallback = q1 if not _has_forbidden_image_keyword(q1) else fallback
+        queries = [
+            q if not _has_forbidden_image_keyword(q) else safe_fallback
+            for q in [q1, q2, q3]
+        ]
         print(f"  [이미지 키워드] → {queries}")
         return queries
 
@@ -1317,6 +1389,18 @@ def tags_to_image_queries(tags: list[str], keyword: str = "") -> list[str]:
         q3 = tag_words[0] + (" tips" if LANGUAGE == "en" else " korea")
 
     queries = [q1, q2, q3]
+
+    # 금지 키워드 포함 여부 검사 — 포함 시 해당 쿼리를 메인 키워드로 교체
+    safe_q1 = q1 if not _has_forbidden_image_keyword(q1) else fallback
+    cleaned = []
+    for q in queries:
+        if _has_forbidden_image_keyword(q):
+            print(f"  [이미지 금지어] '{q}' 감지 → 메인 키워드로 fallback")
+            cleaned.append(safe_q1)
+        else:
+            cleaned.append(q)
+    queries = cleaned
+
     print(f"  [이미지 키워드] 키워드:'{kw}' → q1='{q1}' / 태그:'{selected}' → q2='{q2}', q3='{q3}'"
     )
     return queries

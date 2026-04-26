@@ -25,6 +25,11 @@ except Exception:
     _SD   = "."
     _LANG = "ko"
 
+try:
+    from config import KEYWORD_POOL as _KEYWORD_POOL
+except Exception:
+    _KEYWORD_POOL = None
+
 _BLOG_TARGET   = os.environ.get("BLOG_TARGET", "unknown").lower()
 LOG_FILE       = os.path.join(_SD, "published_log.json")
 SHARED_KW_FILE = os.path.join("states", "shared_used_keywords.json")
@@ -101,21 +106,50 @@ def _extract_nouns(keyword: str) -> set[str]:
 
 def is_duplicate_keyword(new_kw: str, log: dict) -> tuple[bool, str]:
     """
-    published_log의 기존 키워드와 유사도 체크.
-    핵심 명사 2개 이상 겹치면 중복으로 판단.
+    published_log(30일치)의 기존 키워드와 중복·유사도 체크.
+    - 완전 일치: 항상 중복 판단
+    - 핵심 명사 2개 이상 겹침: 중복 판단
     """
-    new_nouns = _extract_nouns(new_kw)
-    if len(new_nouns) < 2:
-        return False, ""
+    new_kw_lower = new_kw.strip().lower()
+    new_nouns    = _extract_nouns(new_kw)
 
     for entry in log.get("entries", []):
         prev_kw = entry.get("keyword", "")
-        if not prev_kw or prev_kw.strip().lower() == new_kw.strip().lower():
+        if not prev_kw:
             continue
-        prev_nouns = _extract_nouns(prev_kw)
-        overlap = new_nouns & prev_nouns
-        if len(overlap) >= 2:
-            return True, f"'{prev_kw}'와 유사 (공통: {', '.join(sorted(overlap))})"
+        # 완전 일치
+        if prev_kw.strip().lower() == new_kw_lower:
+            return True, f"'{prev_kw}' 동일 키워드 (30일 내 발행됨)"
+        # 핵심 명사 2개 이상 겹침
+        if len(new_nouns) >= 2:
+            prev_nouns = _extract_nouns(prev_kw)
+            overlap    = new_nouns & prev_nouns
+            if len(overlap) >= 2:
+                return True, f"'{prev_kw}'와 유사 (공통: {', '.join(sorted(overlap))})"
+    return False, ""
+
+
+def is_duplicate_title(new_title: str, log: dict) -> tuple[bool, str]:
+    """
+    published_log(30일치)의 기존 제목과 유사도 체크.
+    - 완전 일치: 중복
+    - 핵심 명사 2개 이상 겹침: 중복
+    """
+    new_title_lower = new_title.strip().lower()
+    new_nouns       = _extract_nouns(new_title)
+
+    for entry in log.get("entries", []):
+        prev_title = entry.get("title", "")
+        if not prev_title:
+            continue
+        if prev_title.strip().lower() == new_title_lower:
+            return True, f"'{prev_title[:50]}' 동일 제목 (30일 내 발행됨)"
+        if len(new_nouns) >= 2:
+            prev_nouns = _extract_nouns(prev_title)
+            overlap    = new_nouns & prev_nouns
+            if len(overlap) >= 2:
+                common = ", ".join(sorted(overlap))
+                return True, f"'{prev_title[:40]}...'과 유사 제목 (공통: {common})"
     return False, ""
 
 
@@ -124,6 +158,13 @@ def check_keyword_duplicate(new_kw: str) -> tuple[bool, str]:
     if not new_kw:
         return False, ""
     return is_duplicate_keyword(new_kw, _load_log())
+
+
+def check_title_duplicate(new_title: str) -> tuple[bool, str]:
+    """발행 제목 유사도 체크 (공개 인터페이스)."""
+    if not new_title:
+        return False, ""
+    return is_duplicate_title(new_title, _load_log())
 
 
 # ──────────────────────────────────────────
@@ -241,16 +282,18 @@ def _suggest_keyword(cat_counts: dict[str, int]) -> str | None:
     """
     특정 카테고리가 MAX_SAME_CATEGORY 초과 시
     덜 사용된 카테고리의 대표 키워드를 제안합니다.
+    영어/한국어 블로그 모두 지원.
     """
-    from trend_collector import RSS_SOURCES, _CATEGORY_HINTS
+    if _LANG == "en":
+        from trend_collector import RSS_SOURCES_EN as _sources, _CATEGORY_HINTS_EN as _hints_map
+    else:
+        from trend_collector import RSS_SOURCES as _sources, _CATEGORY_HINTS as _hints_map
 
-    # 오늘 한도 초과 카테고리
     saturated = {c for c, n in cat_counts.items() if n >= MAX_SAME_CATEGORY}
 
-    # 덜 사용된 카테고리 순으로 키워드 제안
-    for category in RSS_SOURCES:
+    for category in _sources:
         if category not in saturated:
-            hints = list(_CATEGORY_HINTS.get(category, []))
+            hints = list(_hints_map.get(category, []))
             if hints:
                 return hints[0]
 
@@ -294,17 +337,30 @@ def run_scheduler(force: bool = False) -> dict:
     else:
         print("  [강제 실행 모드] 간격 체크 건너뜀")
 
-    # 3. 카테고리 균형
-    cat_counts = _check_category_balance(today)
+    # 3. 카테고리 균형 (당일) — KEYWORD_POOL 모드 블로그는 건너뜀
     force_keyword = None
-    if cat_counts:
-        saturated = {c: n for c, n in cat_counts.items() if n >= MAX_SAME_CATEGORY}
-        if saturated:
-            sat_str = ", ".join(f"{c}({n}개)" for c, n in saturated.items())
-            print(f"  ⚠️  카테고리 한도 도달: {sat_str}")
-            force_keyword = _suggest_keyword(cat_counts)
-            if force_keyword:
-                print(f"  → 다른 카테고리 키워드 강제 선택: '{force_keyword}'")
+    if _KEYWORD_POOL:
+        print("  [KEYWORD_POOL 모드] 카테고리 균형/Finance 방지 체크 생략")
+    else:
+        cat_counts = _check_category_balance(today)
+        if cat_counts:
+            saturated = {c: n for c, n in cat_counts.items() if n >= MAX_SAME_CATEGORY}
+            if saturated:
+                sat_str = ", ".join(f"{c}({n}개)" for c, n in saturated.items())
+                print(f"  ⚠️  카테고리 한도 도달: {sat_str}")
+                force_keyword = _suggest_keyword(cat_counts)
+                if force_keyword:
+                    print(f"  → 다른 카테고리 키워드 강제 선택: '{force_keyword}'")
+
+        # 4. Finance 연속 2회 방지 (영어 블로그 전용, 30일 로그 기준)
+        if _LANG == "en" and not force_keyword:
+            _finance_cat = "Finance & Investing"
+            recent_cats  = [e.get("category") for e in log["entries"][-2:]]
+            if len(recent_cats) == 2 and all(c == _finance_cat for c in recent_cats):
+                print(f"  ⚠️  Finance 연속 2회 감지 → 다른 카테고리 강제 선택")
+                force_keyword = _suggest_keyword({_finance_cat: MAX_SAME_CATEGORY})
+                if force_keyword:
+                    print(f"  → 강제 키워드: '{force_keyword}'")
 
     remaining = MAX_DAILY - len(today)
     print(f"  ✅ 실행 가능 (오늘 남은 발행 횟수: {remaining}개)")

@@ -50,6 +50,7 @@ from publisher_agent import run_publisher
 from scheduler_agent import (
     run_scheduler, record_published,
     check_keyword_duplicate, check_shared_keyword, record_shared_keyword,
+    check_title_duplicate,
 )
 
 TEMP_FILES = (DRAFT_FILE, REVIEWED_FILE, SEO_FILE)
@@ -140,6 +141,31 @@ def run_pipeline(keyword: str = None, force: bool = False, draft: bool = False) 
         if not draft_data:
             _cleanup()
             return None
+
+        # ── Writer 선택 키워드·제목 중복 체크 ────
+        # keyword=None 인 경우 writer가 내부에서 키워드를 선택하므로
+        # draft_data에서 실제 사용 키워드를 꺼내 30일 중복 체크 수행
+        _used_kw    = draft_data.get("keyword", keyword or "")
+        _used_title = draft_data.get("title", "")
+
+        if _used_kw and not keyword:  # writer가 자동 선택한 키워드만 재검사
+            kw_dup, kw_reason = check_keyword_duplicate(_used_kw)
+            if kw_dup:
+                print(f"[Orchestrator] ⏭️  키워드 중복 스킵: '{_used_kw}' — {kw_reason}")
+                _cleanup()
+                return None
+            shared_dup, shared_reason = check_shared_keyword(_used_kw)
+            if shared_dup:
+                print(f"[Orchestrator] ⏭️  공유 키워드 스킵: '{_used_kw}' — {shared_reason}")
+                _cleanup()
+                return None
+
+        if _used_title:
+            title_dup, title_reason = check_title_duplicate(_used_title)
+            if title_dup:
+                print(f"[Orchestrator] ⏭️  제목 유사 스킵: '{_used_title[:40]}' — {title_reason}")
+                _cleanup()
+                return None
 
         # ── Agent 2: Reviewer ─────────────────────
         _banner("Agent 2 — Reviewer  (팩트체크 + 구조검증)")

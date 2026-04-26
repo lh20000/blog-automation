@@ -67,6 +67,7 @@ jobs:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY:    ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          INDEXNOW_KEY:          ${{ secrets.INDEXNOW_KEY }}
           PYTHONIOENCODING:      "utf-8"
           PYTHONPATH:            ".:core"
         run: |
@@ -86,6 +87,8 @@ jobs:
           [ -f states/fixitlab/rotation_state.json ] && git add states/fixitlab/rotation_state.json || true
           if ! git diff --staged --quiet; then
             git commit -m "chore: Fix IT Lab auto-post state update [skip ci]"
-            git pull --rebase origin master
-            git push origin HEAD:master
+            for i in 1 2 3; do
+              git pull --rebase origin master && git push origin HEAD:master && break
+              sleep $((i * 5))
+            done
           fi

@@ -51,6 +51,17 @@ TOKEN_FILE       = "states/fixailab/token.json"
 # ──────────────────────────────────────────
 TREND_COUNT = 5
 
+ALLOWED_CATEGORIES = ["Technology & AI"]
+
+KEYWORD_POOL = [
+    "ChatGPT", "Claude AI", "Gemini", "Copilot", "Perplexity AI",
+    "AI image generation", "Midjourney", "Stable Diffusion", "DALL-E",
+    "prompt engineering", "AI for beginners", "AI productivity tools",
+    "AI automation", "AI writing tools", "no-code AI", "AI side hustle",
+    "AI monetization", "AI workflow", "LLM", "AI agent", "AI tutorial",
+    "voice AI", "AI video generation", "AI summarizer", "AI coding",
+]
+
 # ──────────────────────────────────────────
 # [7] Gemini Model Settings
 # ──────────────────────────────────────────

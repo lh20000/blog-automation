@@ -44,7 +44,21 @@ def get_credentials():
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+            try:
+                creds.refresh(Request())
+            except Exception as _e:
+                _msg = str(_e).lower()
+                if "invalid_grant" in _msg or "token has been expired" in _msg:
+                    _target = os.environ.get("BLOG_TARGET", "BLOG").upper()
+                    print("\n" + "=" * 60)
+                    print(f"[TOKEN ERROR] {_target}_TOKEN_JSON Secret 재발급 필요")
+                    print(f"[TOKEN ERROR] OAuth2 refresh token 만료 (invalid_grant)")
+                    print(f"[TOKEN ERROR] 조치 방법:")
+                    print(f"[TOKEN ERROR]   1. 로컬에서 token.json 재발급 (브라우저 인증)")
+                    print(f"[TOKEN ERROR]   2. GitHub → Settings → Secrets")
+                    print(f"[TOKEN ERROR]      → {_target}_TOKEN_JSON 새 값으로 교체")
+                    print("=" * 60 + "\n")
+                raise
         else:
             print("\n브라우저가 열립니다. 구글 계정으로 로그인해주세요.")
             flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)

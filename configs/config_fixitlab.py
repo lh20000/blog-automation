@@ -51,6 +51,17 @@ TOKEN_FILE       = "states/fixitlab/token.json"
 # ──────────────────────────────────────────
 TREND_COUNT = 5
 
+ALLOWED_CATEGORIES = ["Technology & AI"]
+
+KEYWORD_POOL = [
+    "IDE", "CLI", "Git", "GitHub", "MCP", "API",
+    "Docker", "Linux terminal", "Python basics",
+    "JavaScript", "open source", "debugging",
+    "LLM", "prompt engineering", "AI agent",
+    "RAG", "fine-tuning", "vector database",
+    "GPU", "cloud computing", "DevOps",
+]
+
 # ──────────────────────────────────────────
 # [7] Gemini Model Settings
 # ──────────────────────────────────────────

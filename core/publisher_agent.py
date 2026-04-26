@@ -15,6 +15,25 @@ SEO_FILE      = "seo_output.json"
 REVIEWED_FILE = "reviewed_output.json"   # SEO 없이 단독 실행 시 폴백
 
 
+def submit_indexnow(url: str):
+    import requests
+    key = os.environ.get("INDEXNOW_KEY", "")
+    if not key:
+        print("[IndexNow] ⚠️ INDEXNOW_KEY 없음, 스킵")
+        return
+    try:
+        host = url.split("/")[2]
+        payload = {"host": host, "key": key, "urlList": [url]}
+        r = requests.post(
+            "https://api.indexnow.org/indexnow",
+            json=payload,
+            timeout=10
+        )
+        print(f"[IndexNow] ✅ 제출 완료: {url} ({r.status_code})")
+    except Exception as e:
+        print(f"[IndexNow] ❌ 실패: {e}")
+
+
 def run_publisher() -> dict | None:
     """
     seo_output.json (없으면 reviewed_output.json) 을 읽어 Blogger 발행.
@@ -57,6 +76,8 @@ def run_publisher() -> dict | None:
     if result:
         print(f"\n[Publisher] ✅ 완료")
         print(f"  URL: {result['url']}")
+        if not is_draft:
+            submit_indexnow(result["url"])
     else:
         print("[Publisher] ❌ 발행 실패")
 
