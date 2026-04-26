@@ -30,7 +30,7 @@ LANGUAGE  = getattr(_cfg, "LANGUAGE",  "ko")
 BLOG_NAME = getattr(_cfg, "BLOG_NAME", "")
 
 # Gemini 클라이언트 (OpenAI 사용 시 None으로 두어 불필요한 초기화 방지)
-client = genai.Client(api_key=GEMINI_API_KEY) if LLM_PROVIDER != "openai" and GEMINI_API_KEY else None
+client = genai.Client(api_key=GEMINI_API_KEY, http_options={"timeout": 120}) if LLM_PROVIDER != "openai" and GEMINI_API_KEY else None
 
 # Cloudinary SDK 초기화 (키가 설정된 경우에만)
 if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
