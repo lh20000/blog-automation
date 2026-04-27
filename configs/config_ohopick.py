@@ -55,10 +55,9 @@ LANGUAGE    = "ko" # 언어
 # ──────────────────────────────────────────
 # [8] Gemini 모델 설정
 # ──────────────────────────────────────────
-LLM_PROVIDER    = "gemini"
-TEXT_MODEL      = "gemini-3.1-flash-lite-preview"
-FALLBACK_MODELS = ["gemini-3.1-flash-lite-preview", "gemini-2.5-flash-lite", "gemini-2.5-flash"]
-OPENAI_API_KEY  = os.environ.get("OPENAI_API_KEY", "")
+LLM_PROVIDER   = "gemini"
+TEXT_MODEL     = "gemini-3.1-flash-lite-preview"
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
 # ──────────────────────────────────────────
 # [9] 카테고리 (한국어)

@@ -28,7 +28,6 @@ REQUIRED_KEYS = [
 # 추가 권장 키 (없으면 경고만, 실패 처리 안 함)
 RECOMMENDED_KEYS = [
     "BLOG_NAME",
-    "FALLBACK_MODELS",
     "STATES_DIR",
     "CREDENTIALS_FILE",
     "TOKEN_FILE",

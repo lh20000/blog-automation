@@ -49,10 +49,9 @@ LANGUAGE    = "en" # Language: English
 # ──────────────────────────────────────────
 # [7] Gemini Model Settings
 # ──────────────────────────────────────────
-LLM_PROVIDER    = "gemini"
-TEXT_MODEL      = "gemini-3.1-flash-lite-preview"
-FALLBACK_MODELS = ["gemini-3.1-flash-lite-preview", "gemini-2.5-flash-lite", "gemini-2.5-flash"]
-OPENAI_API_KEY  = os.environ.get("OPENAI_API_KEY", "")
+LLM_PROVIDER   = "gemini"
+TEXT_MODEL     = "gemini-3.1-flash-lite-preview"
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
 # ──────────────────────────────────────────
 # [8] Categories (English)

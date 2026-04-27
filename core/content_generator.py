@@ -22,7 +22,6 @@ from config import (GEMINI_API_KEY, UNSPLASH_ACCESS_KEY, PIXABAY_API_KEY,
                     CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET,
                     TEXT_MODEL)
 import config as _cfg_cg
-FALLBACK_MODELS = getattr(_cfg_cg, "FALLBACK_MODELS", [TEXT_MODEL])
 LLM_PROVIDER   = getattr(_cfg_cg, "LLM_PROVIDER",   "gemini")
 OPENAI_API_KEY = getattr(_cfg_cg, "OPENAI_API_KEY",  "")
 import config as _cfg
@@ -30,7 +29,7 @@ LANGUAGE  = getattr(_cfg, "LANGUAGE",  "ko")
 BLOG_NAME = getattr(_cfg, "BLOG_NAME", "")
 
 # Gemini 클라이언트 (OpenAI 사용 시 None으로 두어 불필요한 초기화 방지)
-client = genai.Client(api_key=GEMINI_API_KEY, http_options={"timeout": 120}) if LLM_PROVIDER != "openai" and GEMINI_API_KEY else None
+client = genai.Client(api_key=GEMINI_API_KEY) if LLM_PROVIDER != "openai" and GEMINI_API_KEY else None
 
 # Cloudinary SDK 초기화 (키가 설정된 경우에만)
 if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
@@ -648,39 +647,30 @@ def _generate_gemini(keyword: str) -> dict | None:
             "service unavailable", "resource exhausted",
         ))
 
-    models_to_try = list(dict.fromkeys(FALLBACK_MODELS))
-    for model_idx, model in enumerate(models_to_try, 1):
-        if model_idx > 1:
-            wait = 20 * (model_idx - 1)
-            print(f"  다음 모델 시도 {model_idx}회 (모델: {model}, {wait}초 대기 중...)")
-            time.sleep(wait)
-
-        for retry in range(len(_RETRY_WAITS) + 1):
-            try:
-                response = client.models.generate_content(
-                    model=model,
-                    contents=prompt,
-                    config=genai_types.GenerateContentConfig(max_output_tokens=8192),
+    for retry in range(len(_RETRY_WAITS) + 1):
+        try:
+            response = client.models.generate_content(
+                model=TEXT_MODEL,
+                contents=prompt,
+                config=genai_types.GenerateContentConfig(max_output_tokens=8192),
+            )
+            meta = response.usage_metadata
+            if meta:
+                print(
+                    f"  [Gemini] 토큰 — "
+                    f"입력 {meta.prompt_token_count:,} / "
+                    f"출력 {meta.candidates_token_count:,} / "
+                    f"합계 {meta.total_token_count:,}"
                 )
-                if model_idx > 1 or retry > 0:
-                    print(f"  모델 '{model}'으로 생성 성공")
-                meta = response.usage_metadata
-                if meta:
-                    print(
-                        f"  [Gemini] 토큰 — "
-                        f"입력 {meta.prompt_token_count:,} / "
-                        f"출력 {meta.candidates_token_count:,} / "
-                        f"합계 {meta.total_token_count:,}"
-                    )
-                return parse_text_response(response.text)
-            except Exception as e:
-                if retry < len(_RETRY_WAITS) and _is_retryable(e):
-                    wait_sec = _RETRY_WAITS[retry]
-                    print(f"  [Gemini] {type(e).__name__} → {wait_sec}초 후 재시도 ({retry + 1}/3)...")
-                    time.sleep(wait_sec)
-                else:
-                    print(f"  텍스트 생성 오류 (모델: {model}): {e}")
-                    break  # 이 모델 포기 → 다음 모델로
+            return parse_text_response(response.text)
+        except Exception as e:
+            if retry < len(_RETRY_WAITS) and _is_retryable(e):
+                wait_sec = _RETRY_WAITS[retry]
+                print(f"  [Gemini] {type(e).__name__} → {wait_sec}초 후 재시도 ({retry + 1}/3)...")
+                time.sleep(wait_sec)
+            else:
+                print(f"  텍스트 생성 오류 (모델: {TEXT_MODEL}): {e}")
+                break
 
     return None
 
