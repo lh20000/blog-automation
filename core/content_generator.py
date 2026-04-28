@@ -864,6 +864,9 @@ def parse_text_response(raw: str) -> dict:
                     data[current] = "\n".join(buf).strip()
                 current, buf, found = m, [], True
                 break
+        # 미등록 ##MARKER## 패턴은 버퍼에 추가하지 않음 (예: ##SECTION5_TITLE##)
+        if not found and re.match(r'^##[A-Z0-9_]+##$', stripped):
+            found = True
         if not found and current:
             buf.append(line)
 
@@ -871,11 +874,20 @@ def parse_text_response(raw: str) -> dict:
         data[current] = "\n".join(buf).strip()
 
     # SECTION_BODY 첫 줄 H2 중복 제거 — 모델이 소제목 H2를 body 첫 줄에 반복 출력하는 경우
-    # <style> 블록 제거 — Gemini가 SECTION_BODY에 CSS 블록을 직접 삽입하는 경우 방어
+    # <style> 블록 제거 + raw CSS 규칙 블록 제거 — Gemini가 CSS를 직접 삽입하는 경우 방어
     for body_key in ("SECTION1_BODY", "SECTION2_BODY", "SECTION3_BODY", "SECTION4_BODY"):
         if data[body_key]:
+            # <style>...</style> 태그 제거
             data[body_key] = re.sub(
                 r'<style[\s\S]*?</style>', '', data[body_key], flags=re.IGNORECASE
+            ).strip()
+            # <style> 태그 없이 노출된 raw CSS 규칙 블록 제거
+            # 예: "table { border-left:none !important; color:#fff; }"
+            data[body_key] = re.sub(
+                r'[\w][\w\s.#,>:+~*\[\]()"\'-]{0,100}\{[^<>{}]*:[^<>{}]*;[^<>{}]*\}',
+                '',
+                data[body_key],
+                flags=re.IGNORECASE,
             ).strip()
 
     for body_key in ("SECTION1_BODY", "SECTION2_BODY", "SECTION3_BODY", "SECTION4_BODY"):
@@ -992,6 +1004,13 @@ def parse_text_response(raw: str) -> dict:
     # OUTRO 문장 분리 (각 문장을 개별 <p> 태그로)
     if data["OUTRO"]:
         data["OUTRO"] = _split_outro_sentences(data["OUTRO"])
+
+    # 파싱 후 남은 ##MARKER## 패턴 후처리 — 모든 값에서 일괄 제거
+    _leftover_marker = re.compile(r'##[A-Z0-9_]+##')
+    for _mk in list(data.keys()):
+        if data[_mk] and _leftover_marker.search(data[_mk]):
+            data[_mk] = _leftover_marker.sub('', data[_mk]).strip()
+            print(f"  [파싱 후처리] {_mk}: 잔여 ##MARKER## 제거")
 
     return data
 
@@ -1788,7 +1807,7 @@ def _style_inline_tables(body: str) -> str:
     return body
 
 
-def assemble_html(d: dict, images: list[str | None]) -> str:
+def assemble_html(d: dict, images: list[str | None], body_keywords: list[str] | None = None) -> str:
     img1, img2, img3 = images[0], images[1], images[2]
 
     # 빈 H2 태그 방지 — Gemini가 빈 값 반환 시 언어별 폴백 제목 사용
@@ -1849,10 +1868,119 @@ def assemble_html(d: dict, images: list[str | None]) -> str:
         f'border-top:1px solid #e0e0e0; padding-top:14px;">'
         f'{disclaimer}</p>\n'
     )
-    html += img_tag(img3, "마무리 이미지")
+    # 마지막 이미지 alt: 본문 핵심 키워드 기반 (LANGUAGE 맞춤)
+    if body_keywords and len(body_keywords) >= 2:
+        outro_alt = (f"{body_keywords[0]} {body_keywords[1]} guide"
+                     if LANGUAGE == "en"
+                     else f"{body_keywords[0]} {body_keywords[1]} 정보")
+    elif body_keywords:
+        outro_alt = (f"{body_keywords[0]} guide"
+                     if LANGUAGE == "en"
+                     else f"{body_keywords[0]} 정보")
+    else:
+        outro_alt = "Closing information guide" if LANGUAGE == "en" else "마무리 정보"
+    html += img_tag(img3, outro_alt)
     html += d["OUTRO"] + "\n"
 
     return html
+
+
+# ──────────────────────────────────────────
+# 4-B. 본문 기반 핵심 키워드 추출 / 이미지 쿼리 생성
+# ──────────────────────────────────────────
+
+def extract_body_keywords(d: dict) -> list[str]:
+    """
+    생성된 본문 전체에서 빈도 기반 핵심 키워드 최대 3개 추출.
+    HTML 태그 제거 후 2자 이상 단어를 불용어 제외하고 카운트.
+    """
+    _EN_STOPWORDS = {
+        "the", "a", "an", "and", "or", "but", "in", "on", "at", "to",
+        "for", "of", "with", "by", "from", "up", "about", "into",
+        "through", "during", "is", "are", "was", "were", "be", "been",
+        "being", "have", "has", "had", "do", "does", "did", "will",
+        "would", "could", "should", "may", "might", "shall", "can",
+        "this", "that", "these", "those", "it", "its", "you", "your",
+        "we", "our", "they", "their", "he", "she", "his", "her",
+        "what", "when", "where", "who", "how", "why", "which",
+        "not", "no", "so", "if", "as", "than", "more", "also",
+        "just", "only", "very", "well", "all", "each", "every",
+        "most", "other", "then", "now", "here", "there", "use",
+        "used", "using", "make", "makes", "made", "help", "helps",
+        "get", "gets", "set", "sets", "can", "one", "two", "three",
+    }
+    _KO_STOPWORDS = {
+        "이", "그", "저", "것", "때", "수", "등", "및", "또",
+        "더", "가", "를", "은", "는", "와", "과", "에", "의",
+        "로", "을", "한", "하는", "있는", "없는", "이런", "그런",
+        "하지", "않는", "있다", "없다", "한다", "된다", "위한",
+        "통해", "대한", "관한", "부터", "까지", "위해", "때문",
+        "경우", "방법", "방식", "정도", "이것", "그것", "저것",
+        "하면", "되면", "이후", "이전", "다음", "해당", "모든",
+    }
+
+    body_keys = ("INTRO", "SECTION1_BODY", "SECTION2_BODY",
+                 "SECTION3_BODY", "SECTION4_BODY", "OUTRO")
+    raw_text = " ".join(d.get(k, "") for k in body_keys)
+
+    raw_text = re.sub(r'<[^>]+>', ' ', raw_text)
+    raw_text = re.sub(r'&[a-z]+;', ' ', raw_text)
+
+    freq: dict[str, int] = {}
+    if LANGUAGE == "en":
+        for w in re.findall(r'[a-zA-Z]{2,}', raw_text.lower()):
+            if w not in _EN_STOPWORDS:
+                freq[w] = freq.get(w, 0) + 1
+    else:
+        for w in re.findall(r'[가-힣]{2,}', raw_text):
+            if w not in _KO_STOPWORDS:
+                freq[w] = freq.get(w, 0) + 1
+
+    if not freq:
+        return []
+
+    top = sorted(freq, key=lambda w: freq[w], reverse=True)[:3]
+    print(f"  [본문 키워드] 추출 결과: {top}")
+    return top
+
+
+def body_keywords_to_image_queries(body_keywords: list[str], keyword: str = "") -> list[str]:
+    """
+    본문 핵심 키워드 리스트를 이미지 검색 쿼리 3개로 변환.
+    q1: 1위 키워드, q2: 2위 키워드, q3: 1위+2위 조합.
+    한국어 블로그: deep_translator로 영문 변환 후 사용.
+    """
+    fallback = "lifestyle daily" if LANGUAGE == "en" else "korea lifestyle daily"
+
+    def _kw_to_en(kw: str) -> str:
+        if LANGUAGE == "en":
+            return re.sub(r"[^a-z0-9\s]", "", kw.lower()).strip()
+        try:
+            from deep_translator import GoogleTranslator
+            return GoogleTranslator(source="ko", target="en").translate(kw).lower().strip()
+        except Exception:
+            return ""
+
+    en_kws = [w for w in (_kw_to_en(kw) for kw in body_keywords[:3]) if w]
+
+    if not en_kws:
+        return [fallback, fallback, fallback]
+
+    q1 = en_kws[0]
+    q2 = en_kws[1] if len(en_kws) >= 2 else q1
+    q3 = (en_kws[0] + " " + en_kws[1]).strip() if len(en_kws) >= 2 else q1
+
+    safe_fallback = q1 if not _has_forbidden_image_keyword(q1) else fallback
+    cleaned = []
+    for q in [q1, q2, q3]:
+        if _has_forbidden_image_keyword(q):
+            print(f"  [이미지 금지어] '{q}' 감지 → fallback")
+            cleaned.append(safe_fallback)
+        else:
+            cleaned.append(q)
+
+    print(f"  [본문 키워드 → 이미지 쿼리] q1='{cleaned[0]}', q2='{cleaned[1]}', q3='{cleaned[2]}'")
+    return cleaned
 
 
 # ──────────────────────────────────────────
@@ -1879,17 +2007,21 @@ def generate_blog_post(keyword: str) -> dict | None:
     # 태그를 이미지 검색 전에 먼저 추출
     tags = [t.strip().lstrip("#") for t in d["TAGS"].split(",") if t.strip()]
 
-    # 2) 이미지 3장 — 태그 기반 영문 쿼리로 검색
+    # 2) 본문 전체에서 핵심 키워드 추출
+    body_kws = extract_body_keywords(d)
+
+    # 3) 이미지 3장 — 본문 키워드 우선, 없으면 태그 기반 fallback
     print("\n  [이미지 검색 중 — 1순위:Unsplash / 2순위:Pixabay]")
-    img_queries = tags_to_image_queries(tags, keyword=keyword)
+    img_queries = (body_keywords_to_image_queries(body_kws, keyword=keyword)
+                   if body_kws else tags_to_image_queries(tags, keyword=keyword))
     images = []
     for i, query in enumerate(img_queries, 1):
         print(f"    [{i}/3] 검색어: {query}")
         src = get_image(query, keyword)
         images.append(src)
 
-    # 3) HTML 조립
-    content_html = assemble_html(d, images)
+    # 4) HTML 조립
+    content_html = assemble_html(d, images, body_kws)
 
     print(f"\n  제목: {clean_title}")
     print(f"  태그: {', '.join(tags)}")
