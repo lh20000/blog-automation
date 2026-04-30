@@ -75,23 +75,47 @@ def _detect_category(keyword: str, title: str = "") -> str:
     lang = getattr(cfg, "BLOG_LANGUAGE", "ko") if cfg else "ko"
 
     if lang == "en":
+        # 우선순위: Tech를 먼저 검사 (AI/automation 키워드가 Finance와 충돌하지 않도록)
         mapping = [
-            ("Finance & Investing",       {"finance", "invest", "stock", "saving", "fund", "ETF", "crypto", "budget", "loan", "tax", "retirement"}),
-            ("Technology & AI",           {"AI", "tech", "software", "app", "cloud", "robot", "data", "digital", "chip", "gadget"}),
-            ("Health & Wellness",         {"health", "diet", "fitness", "nutrition", "sleep", "stress", "vitamin", "immune", "workout", "mental"}),
-            ("Lifestyle & Productivity",  {"productivity", "habit", "routine", "lifestyle", "self-improvement", "career", "skill", "travel", "culture"}),
-            ("Travel & Culture",          {"travel", "trip", "destination", "culture", "food", "tourism", "adventure", "flight", "hotel"}),
+            ("Technology & AI",           {"ai", "tech", "software", "app", "cloud", "robot", "data", "digital",
+                                           "chip", "gadget", "git", "github", "api", "vector", "database",
+                                           "diffusion", "midjourney", "gpt", "llm", "chatgpt", "automation",
+                                           "machine learning", "neural", "algorithm", "code", "coding",
+                                           "developer", "programming", "python", "javascript",
+                                           "productivity tool", "no-code", "saas", "stable diffusion"}),
+            ("Health & Wellness",         {"health", "diet", "fitness", "nutrition", "sleep", "stress",
+                                           "vitamin", "immune", "workout", "mental", "medicine",
+                                           "medication", "doctor", "hospital", "wellness"}),
+            ("Travel & Culture",          {"travel", "trip", "destination", "tourism", "adventure",
+                                           "flight", "hotel", "visa", "passport"}),
+            ("Lifestyle & Productivity",  {"productivity", "habit", "routine", "lifestyle",
+                                           "self-improvement", "career", "skill", "minimalism",
+                                           "remote work", "side hustle", "work life"}),
+            ("Finance & Investing",       {"finance", "invest", "stock", "saving", "fund", "etf",
+                                           "crypto", "budget", "loan", "tax", "retirement", "rent",
+                                           "credit card", "mortgage", "interest rate", "deposit"}),
         ]
-        default_cat = "Finance & Investing"
+        default_cat = "Lifestyle & Productivity"
     else:
+        # 우선순위: IT/건강을 먼저 검사 (default가 재테크라서 매칭 실패 시 잘못 분류되는 문제 방지)
         mapping = [
-            ("재테크/투자",         {"금리", "주식", "재테크", "투자", "대출", "펀드", "ETF", "청약", "저축", "연금", "부동산"}),
-            ("IT/테크",             {"AI", "인공지능", "반도체", "스마트폰", "앱", "소프트웨어", "클라우드", "로봇", "데이터"}),
-            ("건강/wellness",       {"건강", "다이어트", "운동", "식단", "영양", "수면", "스트레스", "비타민", "면역"}),
-            ("라이프스타일/생산성",  {"자기계발", "생산성", "독서", "습관", "루틴", "여행", "관광", "문화", "취업", "부업"}),
-            ("생활정보/절약",       {"절약", "생활비", "요금", "할인", "가계부", "통신비", "공과금", "보험", "카드혜택"}),
+            ("IT/테크",             {"ai", "인공지능", "반도체", "스마트폰", "앱", "소프트웨어", "클라우드",
+                                     "로봇", "데이터", "api", "git", "github", "코딩", "프로그래밍",
+                                     "개발자", "개발", "벡터", "데이터베이스", "디퓨전", "미드저니",
+                                     "gpt", "llm", "챗gpt", "머신러닝", "딥러닝", "알고리즘",
+                                     "파이썬", "자바스크립트", "it"}),
+            ("건강/wellness",       {"건강", "다이어트", "운동", "식단", "영양", "수면", "스트레스",
+                                     "비타민", "면역", "약", "복용", "처방", "병원", "의사", "치료",
+                                     "의료", "혈압", "당뇨", "근육"}),
+            ("라이프스타일/생산성",  {"자기계발", "생산성", "독서", "습관", "루틴", "여행", "관광",
+                                     "문화", "취업", "부업", "취미", "강의", "목표", "시간관리"}),
+            ("생활정보/절약",       {"절약", "생활비", "요금", "할인", "가계부", "통신비", "공과금",
+                                     "보험", "카드혜택", "쿠폰", "전기요금", "가스비"}),
+            ("재테크/투자",         {"금리", "주식", "재테크", "투자", "대출", "펀드", "etf", "청약",
+                                     "저축", "연금", "부동산", "월세", "전세", "세금", "isa",
+                                     "예금", "적금"}),
         ]
-        default_cat = "재테크/투자"
+        default_cat = "라이프스타일/생산성"
 
     combined_lower = combined.lower()
     for cat, keywords in mapping:
@@ -203,14 +227,16 @@ def run_pipeline(keyword: str = None, force: bool = False, draft: bool = False) 
 
         # ── 발행 성공 시 스케줄러 로그 기록 ─────────
         if result:
-            category = _detect_category(keyword or "", seo.get("title", ""))
+            # writer가 자동 선택한 키워드도 저장해야 30일 중복 체크가 작동함
+            actual_keyword = keyword or _used_kw or ""
+            category = _detect_category(actual_keyword, seo.get("title", ""))
             record_published(
                 title=seo.get("title", ""),
                 url=result["url"],
                 category=category,
-                keyword=keyword or "",
+                keyword=actual_keyword,
             )
-            record_shared_keyword(keyword or "")
+            record_shared_keyword(actual_keyword)
             from trend_collector import save_rotation_state
             save_rotation_state(category)
             print(f"[Orchestrator] 로테이션 상태 저장: '{category}'")

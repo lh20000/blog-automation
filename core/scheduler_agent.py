@@ -65,10 +65,18 @@ _EN_STOP = {
     "work", "works", "need", "know", "want", "should", "will", "just",
     "really", "every", "only", "also", "more", "most", "less", "now",
     "vs", "versus", "or", "all", "any", "new", "old", "free",
+    # generic listicle / how-to words (commonly cause false negatives)
+    "step", "steps", "getting", "started", "start", "starting",
+    "beginners", "beginner", "everyone", "today", "here",
+    "explained", "understanding", "basics", "basic", "key", "ultimate",
+    "essential", "practical", "proven", "simple", "minute", "minutes",
+    "hour", "hours", "week", "weekly", "daily", "year", "yearly",
+    "save", "saves", "saving", "savings", "make", "making",
     # years
     "2026", "2025", "2024", "2023",
     # numbers as words
     "one", "two", "three", "four", "five", "six", "seven", "eight",
+    "nine", "ten",
 }
 
 
@@ -118,11 +126,32 @@ def record_published(title: str, url: str, category: str = "기타", keyword: st
 # 키워드 유사도 체크
 # ──────────────────────────────────────────
 
+# 한국어 조사 — 토큰 끝에서 제거 (긴 조사부터 검사)
+_KO_PARTICLES = (
+    "에서는", "으로는", "이라고", "라고는",
+    "부터", "까지", "에서", "으로", "에게", "이라", "라고",
+    "이나", "에는", "보다", "처럼", "마저", "조차",
+    "은", "는", "이", "가", "을", "를", "의", "에", "도", "만", "로", "과", "와",
+)
+
+
+def _strip_ko_particles(word: str) -> str:
+    """한국어 토큰 끝의 조사 제거. '입문자가' → '입문자'."""
+    for p in _KO_PARTICLES:
+        if word.endswith(p) and len(word) > len(p) + 1:
+            return word[:-len(p)]
+    return word
+
+
 def _extract_nouns(keyword: str) -> set[str]:
     """키워드에서 핵심 명사 추출 (유사도 비교용)."""
     if _LANG == "en" or not re.search(r"[가-힣]", keyword):
-        return {w for w in keyword.lower().split() if len(w) > 2 and w not in _EN_STOP}
-    return set(re.findall(r"[가-힣]{2,}", keyword)) - _KO_STOP
+        # 구두점/특수문자 제거 후 토큰화 — "investing?" → "investing"
+        cleaned = re.sub(r"[^\w\s]", " ", keyword.lower())
+        return {w for w in cleaned.split() if len(w) > 2 and w not in _EN_STOP}
+    raw = re.findall(r"[가-힣]{2,}", keyword)
+    stripped = {_strip_ko_particles(w) for w in raw}
+    return {w for w in stripped if len(w) >= 2 and w not in _KO_STOP}
 
 
 def is_duplicate_keyword(new_kw: str, log: dict) -> tuple[bool, str]:
@@ -150,11 +179,34 @@ def is_duplicate_keyword(new_kw: str, log: dict) -> tuple[bool, str]:
     return False, ""
 
 
+_TOPIC_TERMS = {
+    # 1개만 겹쳐도 같은 글로 간주할 핵심 토픽 단어
+    # 영어
+    "stock", "etf", "fund", "crypto", "bitcoin", "vector", "github", "git",
+    "diffusion", "midjourney", "chatgpt", "kubernetes", "docker", "monthly rent",
+    "mortgage", "401k",
+    # 한국어
+    "주식", "펀드", "ETF", "ISA", "월세", "전세", "면역", "다이어트",
+    "간헐적단식", "API", "Git", "GitHub", "코딩",
+}
+
+
+def _has_topic_overlap(a: set[str], b: set[str]) -> str | None:
+    """두 명사 집합에 핵심 토픽 단어가 동시에 존재하면 해당 단어 반환."""
+    common = a & b
+    for term in _TOPIC_TERMS:
+        t = term.lower()
+        if t in common:
+            return term
+    return None
+
+
 def is_duplicate_title(new_title: str, log: dict) -> tuple[bool, str]:
     """
     published_log(30일치)의 기존 제목과 유사도 체크.
     - 완전 일치: 중복
-    - 핵심 명사 3개 이상 겹침: 중복 (제목은 길어서 임계값 3 적용)
+    - 핵심 토픽 단어 1개 + 일반 명사 1개 이상 겹침: 중복
+    - 일반 명사 2개 이상 겹침: 중복
     """
     new_title_lower = new_title.strip().lower()
     new_nouns       = _extract_nouns(new_title)
@@ -165,12 +217,19 @@ def is_duplicate_title(new_title: str, log: dict) -> tuple[bool, str]:
             continue
         if prev_title.strip().lower() == new_title_lower:
             return True, f"'{prev_title[:50]}' 동일 제목 (30일 내 발행됨)"
-        if len(new_nouns) >= 3:
-            prev_nouns = _extract_nouns(prev_title)
-            overlap    = new_nouns & prev_nouns
-            if len(overlap) >= 3:
-                common = ", ".join(sorted(overlap))
-                return True, f"'{prev_title[:40]}...'과 유사 제목 (공통: {common})"
+        prev_nouns = _extract_nouns(prev_title)
+        overlap    = new_nouns & prev_nouns
+        topic_hit  = _has_topic_overlap(new_nouns, prev_nouns)
+
+        # 핵심 토픽 단어가 겹치면 추가 명사 1개만 더 겹쳐도 중복
+        if topic_hit and len(overlap) >= 2:
+            common = ", ".join(sorted(overlap))
+            return True, f"'{prev_title[:40]}...'과 동일 토픽 ({topic_hit}, 공통: {common})"
+
+        # 일반 명사 2개 이상 겹쳐도 중복
+        if len(overlap) >= 2:
+            common = ", ".join(sorted(overlap))
+            return True, f"'{prev_title[:40]}...'과 유사 제목 (공통: {common})"
     return False, ""
 
 

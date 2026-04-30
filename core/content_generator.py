@@ -345,6 +345,24 @@ def _build_prompt_ko(keyword: str) -> str:
  - 실제 검색에 쓰이는 명사형 키워드만 사용
    좋은 예: 약복용법, 건강관리, 식전약, 복용시간, 의약품
    나쁜 예: 2026년최신, 완전정리, 건강꿀팁2026)
+
+##IMAGE_QUERY_1##
+(이 글의 INTRO 직후에 들어갈 대표 이미지의 영문 검색어 — 글 전체 핵심 주제를 시각화.
+ 반드시 영문으로 작성. 2~4 단어. 명사 위주. 추상명사 금지.
+ 좋은 예: "person taking medicine water", "stock chart financial planning", "vitamin pills morning"
+ 나쁜 예: "health", "important things", "people lifestyle")
+
+##IMAGE_QUERY_2##
+(SECTION2 직후에 들어갈 이미지의 영문 검색어 — SECTION2 본문에서 다룬 실용 팁/방법을 구체적으로 시각화.
+ SECTION1과 다른 시각적 장면이어야 함 (같은 이미지 반복 방지).
+ 반드시 영문으로 작성. 2~4 단어. 명사 위주.
+ 좋은 예: "smartphone calendar reminder app", "kitchen meal preparation healthy", "calculator finance budget desk")
+
+##IMAGE_QUERY_3##
+(글 마무리 직전 이미지의 영문 검색어 — 독자가 행동에 옮긴 결과/장면을 시각화 (실천 모습, 성공 결과).
+ IMAGE_QUERY_1, IMAGE_QUERY_2와 구분되는 다른 장면.
+ 반드시 영문으로 작성. 2~4 단어. 명사 위주.
+ 좋은 예: "person walking park sunrise", "smiling person notebook coffee", "family dinner table together")
 """
 
 
@@ -583,6 +601,24 @@ Minimum 3 rows × 4 columns of comparison data.
  - Use searchable noun keywords only
    Good: medicine, water intake, pill tips, health habits, drug absorption
    Bad: 2026latest, complete guide, health tips 2026)
+
+##IMAGE_QUERY_1##
+(English image search query for the hero image placed right after the INTRO — visualize the article's core topic.
+ 2~4 words. Concrete nouns only. No abstract terms.
+ Good: "person taking medicine water", "laptop stock chart desk", "vitamin pills morning routine"
+ Bad: "health", "important things", "people lifestyle")
+
+##IMAGE_QUERY_2##
+(English image search query for the image placed right after SECTION2 — visualize the practical tips/methods discussed in SECTION2.
+ Must depict a DIFFERENT visual scene from IMAGE_QUERY_1 (avoid duplicate-looking images).
+ 2~4 words. Concrete nouns only.
+ Good: "smartphone calendar reminder app", "kitchen meal prep ingredients", "calculator budget spreadsheet desk")
+
+##IMAGE_QUERY_3##
+(English image search query for the closing image just before OUTRO — visualize the reader's action or successful result (someone taking action, a positive outcome).
+ Must depict a DIFFERENT visual scene from IMAGE_QUERY_1 and IMAGE_QUERY_2.
+ 2~4 words. Concrete nouns only.
+ Good: "person walking park morning", "smiling person notebook coffee", "family dinner table together")
 """
 
 
@@ -849,6 +885,7 @@ def parse_text_response(raw: str) -> dict:
         "TIPBOX", "WARNBOX",
         "FAQ_Q1", "FAQ_A1", "FAQ_Q2", "FAQ_A2", "FAQ_Q3", "FAQ_A3",
         "OUTRO", "TAGS",
+        "IMAGE_QUERY_1", "IMAGE_QUERY_2", "IMAGE_QUERY_3",
     ]
     data = {m: "" for m in markers}
 
@@ -1294,11 +1331,15 @@ def _is_specific_tag(tag: str) -> bool:
 
 
 _FORBIDDEN_IMAGE_KEYWORDS = [
-    # 한국어
+    # 한국어 — 정치/폭력
     "북한", "김정은", "공산당", "시위", "전쟁", "폭발", "시체", "테러", "총기",
-    # 영어
+    # 한국어 — 성적/노출
+    "성인", "노출", "음란", "야한", "벗은",
+    # 영어 — 정치/폭력
     "north korea", "kim jong", "communist", "riot", "explosion",
     "corpse", "terror", "gun violence", "war zone",
+    # 영어 — 성적/노출
+    "naked", "nude", "sexy", "porn", "erotic", "lingerie", "topless",
 ]
 
 
@@ -1816,11 +1857,26 @@ def assemble_html(d: dict, images: list[str | None], body_keywords: list[str] | 
     section3_title = d.get("SECTION3_TITLE", "").strip() or ("Action Checklist" if LANGUAGE == "en" else "실천 체크리스트")
     section4_title = d.get("SECTION4_TITLE", "").strip() or ("Real-World Application" if LANGUAGE == "en" else "실생활 활용")
 
+    # 이미지 alt 텍스트는 각 섹션의 실제 제목을 사용 (fallback)
+    # SECTION_TITLE이 일반표현("핵심 정보")이면 본문 빈도 키워드를 우선 사용해 SEO 보강
+    def _alt_for(section_title: str, fallback_kw: str) -> str:
+        generic = {"Key Information", "Practical Tips & Takeaways", "Action Checklist",
+                   "Real-World Application", "핵심 정보", "실용 팁 & 정리",
+                   "실천 체크리스트", "실생활 활용"}
+        if section_title.strip() in generic and fallback_kw:
+            return fallback_kw
+        return section_title
+
+    bk1 = body_keywords[0] if body_keywords else ""
+    bk2 = body_keywords[1] if body_keywords and len(body_keywords) >= 2 else bk1
+    alt1 = _alt_for(section1_title, bk1)
+    alt2 = _alt_for(section2_title, bk2)
+
     html = ""
     html += summary_box(d["SUMMARY"])
     html += d["INTRO"] + "\n"
     # 이미지1: INTRO 다음, 첫 번째 H2 이전에 배치 (대표 이미지)
-    html += img_tag(img1, section1_title)
+    html += img_tag(img1, alt1)
     html += (
         f'<h2 style="margin-top:32px; margin-bottom:14px; font-size:1.3em; '
         f'color:#1a1a1a;">{section1_title}</h2>\n'
@@ -1841,7 +1897,7 @@ def assemble_html(d: dict, images: list[str | None], body_keywords: list[str] | 
         f'color:#1a1a1a;">{section2_title}</h2>\n'
     )
     html += _style_inline_tables(d["SECTION2_BODY"]) + "\n"
-    html += img_tag(img2, section2_title)
+    html += img_tag(img2, alt2)
     if d.get("SECTION3_BODY", "").strip():
         html += (
             f'<h2 style="margin-top:32px; margin-bottom:14px; font-size:1.3em; '
@@ -1944,6 +2000,139 @@ def extract_body_keywords(d: dict) -> list[str]:
     return top
 
 
+def extract_section_keywords(d: dict) -> list[list[str]]:
+    """
+    각 섹션 본문에서 빈도 기반 핵심 키워드 TOP 2 추출.
+    반환: [[sec1_top2], [sec2_top2], [sec3_or_outro_top2]]
+    이미지 쿼리 fallback 용도.
+    """
+    _EN_STOPWORDS = {
+        "the", "a", "an", "and", "or", "but", "in", "on", "at", "to",
+        "for", "of", "with", "by", "from", "up", "about", "into",
+        "through", "during", "is", "are", "was", "were", "be", "been",
+        "being", "have", "has", "had", "do", "does", "did", "will",
+        "would", "could", "should", "may", "might", "shall", "can",
+        "this", "that", "these", "those", "it", "its", "you", "your",
+        "we", "our", "they", "their", "he", "she", "his", "her",
+        "what", "when", "where", "who", "how", "why", "which",
+        "not", "no", "so", "if", "as", "than", "more", "also",
+        "just", "only", "very", "well", "all", "each", "every",
+        "most", "other", "then", "now", "here", "there", "use",
+        "used", "using", "make", "makes", "made", "help", "helps",
+        "get", "gets", "set", "sets", "one", "two", "three",
+    }
+    _KO_STOPWORDS = {
+        "이", "그", "저", "것", "때", "수", "등", "및", "또",
+        "더", "가", "를", "은", "는", "와", "과", "에", "의",
+        "로", "을", "한", "하는", "있는", "없는", "이런", "그런",
+        "하지", "않는", "있다", "없다", "한다", "된다", "위한",
+        "통해", "대한", "관한", "부터", "까지", "위해", "때문",
+        "경우", "방법", "방식", "정도", "이것", "그것", "저것",
+        "하면", "되면", "이후", "이전", "다음", "해당", "모든",
+    }
+
+    def _top2(text: str) -> list[str]:
+        text = re.sub(r'<[^>]+>', ' ', text)
+        text = re.sub(r'&[a-z]+;', ' ', text)
+        freq: dict[str, int] = {}
+        if LANGUAGE == "en":
+            for w in re.findall(r'[a-zA-Z]{3,}', text.lower()):
+                if w not in _EN_STOPWORDS:
+                    freq[w] = freq.get(w, 0) + 1
+        else:
+            for w in re.findall(r'[가-힣]{2,}', text):
+                if w not in _KO_STOPWORDS:
+                    freq[w] = freq.get(w, 0) + 1
+        return sorted(freq, key=lambda w: freq[w], reverse=True)[:2]
+
+    sec1 = _top2(d.get("SECTION1_BODY", ""))
+    sec2 = _top2(d.get("SECTION2_BODY", ""))
+    # 마무리 이미지: SECTION3+SECTION4+OUTRO 모두 합쳐서 추출 (전체 결론을 반영)
+    sec3 = _top2(
+        d.get("SECTION3_BODY", "") + " " +
+        d.get("SECTION4_BODY", "") + " " +
+        d.get("OUTRO", "")
+    )
+    return [sec1, sec2, sec3]
+
+
+def _translate_ko_to_en(text: str) -> str:
+    """한국어 텍스트를 영어로 번역 (fallback 용도). 실패 시 빈 문자열."""
+    try:
+        from deep_translator import GoogleTranslator
+        return GoogleTranslator(source="ko", target="en").translate(text).lower().strip()
+    except Exception:
+        return ""
+
+
+def select_image_queries(d: dict, keyword: str = "") -> list[str]:
+    """
+    하이브리드 이미지 쿼리 선택:
+    1순위: 모델이 생성한 ##IMAGE_QUERY_1/2/3## 사용 (영문)
+    2순위: 섹션별 빈도 키워드 → (한국어면 영문 번역) → 쿼리 구성
+    3순위: 메인 키워드만 사용
+    """
+    fallback = "lifestyle daily" if LANGUAGE == "en" else "korea lifestyle daily"
+
+    # 모델이 생성한 쿼리 우선 사용
+    model_q = [d.get(f"IMAGE_QUERY_{i}", "").strip() for i in (1, 2, 3)]
+    # 영문 + 2~6단어 + 금지어 미포함만 유효
+    def _is_valid(q: str) -> bool:
+        if not q or len(q) < 4:
+            return False
+        if not re.match(r'^[a-zA-Z0-9\s\-]+$', q):
+            return False
+        n = len(q.split())
+        if n < 2 or n > 6:
+            return False
+        if _has_forbidden_image_keyword(q):
+            return False
+        return True
+
+    valid_model_q = [q if _is_valid(q) else None for q in model_q]
+    used_count = sum(1 for q in valid_model_q if q)
+    print(f"  [이미지 쿼리] 모델 생성: {model_q}")
+    print(f"  [이미지 쿼리] 유효 모델 쿼리: {used_count}/3")
+
+    # 누락분만 섹션별 빈도 키워드로 채움 (fallback)
+    if used_count < 3:
+        section_kws = extract_section_keywords(d)
+        print(f"  [이미지 쿼리] 섹션별 fallback 키워드: {section_kws}")
+
+        for i in range(3):
+            if valid_model_q[i] is not None:
+                continue
+            kws = section_kws[i] if i < len(section_kws) else []
+            if not kws:
+                valid_model_q[i] = _is_valid(keyword) and keyword.lower() or fallback
+                continue
+            phrase = " ".join(kws[:2])
+            if LANGUAGE != "en":
+                en_phrase = _translate_ko_to_en(phrase)
+                if en_phrase and _is_valid(en_phrase):
+                    valid_model_q[i] = en_phrase
+                else:
+                    valid_model_q[i] = fallback
+            else:
+                valid_model_q[i] = phrase if _is_valid(phrase) else fallback
+            print(f"  [이미지 쿼리] q{i+1} fallback 적용 → '{valid_model_q[i]}'")
+
+    # 동일 쿼리 중복 방지 — 같은 쿼리 2회 이상이면 fallback 으로 분산
+    seen: set[str] = set()
+    final = []
+    for i, q in enumerate(valid_model_q):
+        if q in seen:
+            alt = fallback if fallback not in seen else f"{fallback} {i}"
+            print(f"  [이미지 쿼리] q{i+1} 중복 감지('{q}') → '{alt}'로 대체")
+            final.append(alt)
+        else:
+            final.append(q)
+        seen.add(final[-1])
+
+    print(f"  [이미지 쿼리 최종] q1='{final[0]}', q2='{final[1]}', q3='{final[2]}'")
+    return final
+
+
 def body_keywords_to_image_queries(body_keywords: list[str], keyword: str = "") -> list[str]:
     """
     본문 핵심 키워드 리스트를 이미지 검색 쿼리 3개로 변환.
@@ -2007,13 +2196,12 @@ def generate_blog_post(keyword: str) -> dict | None:
     # 태그를 이미지 검색 전에 먼저 추출
     tags = [t.strip().lstrip("#") for t in d["TAGS"].split(",") if t.strip()]
 
-    # 2) 본문 전체에서 핵심 키워드 추출
+    # 2) 본문 전체에서 핵심 키워드 추출 (alt 텍스트용)
     body_kws = extract_body_keywords(d)
 
-    # 3) 이미지 3장 — 본문 키워드 우선, 없으면 태그 기반 fallback
+    # 3) 이미지 쿼리 — 모델 생성 우선, 누락 시 섹션별 fallback (하이브리드)
     print("\n  [이미지 검색 중 — 1순위:Unsplash / 2순위:Pixabay]")
-    img_queries = (body_keywords_to_image_queries(body_kws, keyword=keyword)
-                   if body_kws else tags_to_image_queries(tags, keyword=keyword))
+    img_queries = select_image_queries(d, keyword=keyword)
     images = []
     for i, query in enumerate(img_queries, 1):
         print(f"    [{i}/3] 검색어: {query}")
