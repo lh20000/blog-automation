@@ -1,62 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-04-22",
-      "timestamp": "2026-04-22T00:01:44",
-      "title": "나만 몰랐던 2026년형 투자 전략, 이것만 알면 됩니다",
-      "url": "https://fixitlab-kr.blogspot.com/2026/04/my-brother-investment-strategy-that-2026.html",
-      "category": "재테크/투자",
-      "keyword": ""
-    },
-    {
-      "date": "2026-04-24",
-      "timestamp": "2026-04-24T13:15:34",
-      "title": "나만 몰랐던 자산 배분 전략, 2026년 기준 3가지 핵심 원칙",
-      "url": "https://fixitlab-kr.blogspot.com/2026/04/asset-allocation-strategy-that-only-2026.html",
-      "category": "재테크/투자",
-      "keyword": ""
-    },
-    {
-      "date": "2026-04-28",
-      "timestamp": "2026-04-28T01:15:57",
-      "title": "코딩 초보자도 5분이면 끝내는 Git 기초 사용법 가이드",
-      "url": "https://fixitlab-kr.blogspot.com/2026/04/basic-git-that-even-coding-2026.html",
-      "category": "재테크/투자",
-      "keyword": ""
-    },
-    {
-      "date": "2026-04-28",
-      "timestamp": "2026-04-28T13:12:02",
-      "title": "API가 도대체 뭘까? 나만 몰랐던 IT 상식 완벽정리",
-      "url": "https://fixitlab-kr.blogspot.com/2026/04/earth-api-summary-it-common-2026.html",
-      "category": "재테크/투자",
-      "keyword": ""
-    },
-    {
-      "date": "2026-04-29",
-      "timestamp": "2026-04-29T01:18:41",
-      "title": "데이터 분석의 핵심 임베딩이 뭔지 이제 제대로 알아보겠습니다",
-      "url": "https://fixitlab-kr.blogspot.com/2026/04/now-let-take-closer-look-2026.html",
-      "category": "IT/테크",
-      "keyword": ""
-    },
-    {
-      "date": "2026-04-30",
-      "timestamp": "2026-04-30T01:17:48",
-      "title": "API가 도대체 뭘까, 나만 몰랐던 IT 용어 완벽정리",
-      "url": "https://fixitlab-kr.blogspot.com/2026/04/earth-api-summary-it-terms-2026.html",
-      "category": "재테크/투자",
-      "keyword": ""
-    },
-    {
-      "date": "2026-04-30",
-      "timestamp": "2026-04-30T13:05:41",
-      "title": "터미널 프로그램 이제는 필수, 2026년 최신 활용법 3가지",
-      "url": "https://fixitlab-kr.blogspot.com/2026/04/terminal-program-now-essential-it-2026.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "터미널"
-    },
-    {
       "date": "2026-05-01",
       "timestamp": "2026-05-01T01:23:07",
       "title": "데이터 관리 고민 끝, 2026년형 벡터DB 완벽정리 완전정리",
@@ -135,6 +79,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/05/effective-javascript-learning-key-that.html",
       "category": "IT/테크",
       "keyword": "자바스크립트"
+    },
+    {
+      "date": "2026-05-31",
+      "timestamp": "2026-05-31T12:57:17",
+      "title": "나만 몰랐던 AI 에이전트 활용법, 2026년 최신 가이드",
+      "url": "https://fixitlab-kr.blogspot.com/2026/05/ai-agents-that-only-didn-2026.html",
+      "category": "IT/테크",
+      "keyword": "AI 에이전트"
     }
   ]
 }
