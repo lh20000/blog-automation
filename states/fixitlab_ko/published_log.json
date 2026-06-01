@@ -1,22 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-05-01",
-      "timestamp": "2026-05-01T01:23:07",
-      "title": "데이터 관리 고민 끝, 2026년형 벡터DB 완벽정리 완전정리",
-      "url": "https://fixitlab-kr.blogspot.com/2026/05/end-data-management-worries.html",
-      "category": "IT/테크",
-      "keyword": "벡터DB"
-    },
-    {
-      "date": "2026-05-01",
-      "timestamp": "2026-05-01T12:12:43",
-      "title": "파이썬 공부 시작이 막막한 분들을 위한 2026년 최신 입문 가이드",
-      "url": "https://fixitlab-kr.blogspot.com/2026/05/introductory-those-loss-start-learning.html",
-      "category": "IT/테크",
-      "keyword": "파이썬"
-    },
-    {
       "date": "2026-05-02",
       "timestamp": "2026-05-02T12:06:46",
       "title": "2026년 LLM이 도대체 뭔지 5분 만에 이해하는 법",
@@ -87,6 +71,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/05/ai-agents-that-only-didn-2026.html",
       "category": "IT/테크",
       "keyword": "AI 에이전트"
+    },
+    {
+      "date": "2026-06-01",
+      "timestamp": "2026-06-01T17:01:01",
+      "title": "오픈소스가 뭔지 이제 제대로 알아보겠습니다: 2026년 기준 입문 가이드",
+      "url": "https://fixitlab-kr.blogspot.com/2026/06/now-let-take-closer-look-2026-0601.html",
+      "category": "라이프스타일/생산성",
+      "keyword": "오픈소스"
     }
   ]
 }
