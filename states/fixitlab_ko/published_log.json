@@ -1,14 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-05-02",
-      "timestamp": "2026-05-02T12:06:46",
-      "title": "2026년 LLM이 도대체 뭔지 5분 만에 이해하는 법",
-      "url": "https://fixitlab-kr.blogspot.com/2026/05/understand-llm-just-minute-2026.html",
-      "category": "IT/테크",
-      "keyword": "LLM"
-    },
-    {
       "date": "2026-05-04",
       "timestamp": "2026-05-04T13:07:12",
       "title": "클라우드 저장소, 나만 몰랐던 용량 관리와 활용법 완벽정리",
@@ -79,6 +71,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/06/now-let-take-closer-look-2026-0601.html",
       "category": "라이프스타일/생산성",
       "keyword": "오픈소스"
+    },
+    {
+      "date": "2026-06-02",
+      "timestamp": "2026-06-02T15:40:25",
+      "title": "API가 도대체 뭘까, 나만 몰랐던 IT 상식 3분 완벽정리",
+      "url": "https://fixitlab-kr.blogspot.com/2026/06/earth-api-summary-it-common-2026-0602.html",
+      "category": "IT/테크",
+      "keyword": "API"
     }
   ]
 }
