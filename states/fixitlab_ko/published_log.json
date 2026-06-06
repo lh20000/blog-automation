@@ -1,14 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-05-06",
-      "timestamp": "2026-05-06T13:13:15",
-      "title": "코딩하다 멈춘 순간 디버깅으로 30분 만에 해결하는 법",
-      "url": "https://fixitlab-kr.blogspot.com/2026/05/solve-problem-minutes-debugging-you-2026.html",
-      "category": "IT/테크",
-      "keyword": "디버깅"
-    },
-    {
       "date": "2026-05-10",
       "timestamp": "2026-05-10T12:09:04",
       "title": "나만 몰랐던 도커, 2026년 기준 5분 만에 완벽 정리하는 방법",
@@ -95,6 +87,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/06/kuda-service-usage-2026.html",
       "category": "라이프스타일/생산성",
       "keyword": "쿠다"
+    },
+    {
+      "date": "2026-06-06",
+      "timestamp": "2026-06-06T12:51:21",
+      "title": "LLM이 도대체 뭔지 5분 만에 이해하고 실생활에 써먹는 법",
+      "url": "https://fixitlab-kr.blogspot.com/2026/06/understand-llm-minutes-it-real-2026.html",
+      "category": "IT/테크",
+      "keyword": "LLM"
     }
   ]
 }
