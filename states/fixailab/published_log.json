@@ -1,14 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-05-07",
-      "timestamp": "2026-05-07T15:32:03",
-      "title": "How an AI Workflow Can Save You 10 Hours Every Week in 2026",
-      "url": "https://fixailab.blogspot.com/2026/05/ai-workflow-can-save-you-2026.html",
-      "category": "Technology & AI",
-      "keyword": "AI workflow"
-    },
-    {
       "date": "2026-05-08",
       "timestamp": "2026-05-08T14:59:28",
       "title": "Voice AI vs Traditional Software: Which Will Save You Time in 2026",
@@ -175,6 +167,14 @@
       "url": "https://fixailab.blogspot.com/2026/06/stable-diffusion-generate-images.html",
       "category": "Technology & AI",
       "keyword": "Stable Diffusion"
+    },
+    {
+      "date": "2026-06-07",
+      "timestamp": "2026-06-07T05:16:42",
+      "title": "How to Use Gemini in 2026: A Practical Guide to AI Productivity",
+      "url": "https://fixailab.blogspot.com/2026/06/gemini-practical-ai-productivity-2026.html",
+      "category": "Technology & AI",
+      "keyword": "Gemini"
     }
   ]
 }
