@@ -1,22 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-05-10",
-      "timestamp": "2026-05-10T12:09:04",
-      "title": "나만 몰랐던 도커, 2026년 기준 5분 만에 완벽 정리하는 방법",
-      "url": "https://fixitlab-kr.blogspot.com/2026/05/docker-only-didn-completely-organize.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "도커"
-    },
-    {
-      "date": "2026-05-11",
-      "timestamp": "2026-05-11T01:25:16",
-      "title": "GitHub 사용법, 개발자만 쓰는 도구인 줄 알았나요?",
-      "url": "https://fixitlab-kr.blogspot.com/2026/05/github-did-you-think-it-2026.html",
-      "category": "IT/테크",
-      "keyword": "GitHub"
-    },
-    {
       "date": "2026-05-12",
       "timestamp": "2026-05-12T13:20:55",
       "title": "Git이 도대체 뭐길래? 나만 모르는 협업 도구 완벽정리",
@@ -103,6 +87,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/06/containers-choosing-wisely-2026.html",
       "category": "라이프스타일/생산성",
       "keyword": "컨테이너"
+    },
+    {
+      "date": "2026-06-11",
+      "timestamp": "2026-06-11T15:03:26",
+      "title": "클라우드 저장소, 나만 몰랐던 용량 관리와 활용 팁 3가지",
+      "url": "https://fixitlab-kr.blogspot.com/2026/06/cloud-storage-capacity-management.html",
+      "category": "IT/테크",
+      "keyword": "클라우드"
     }
   ]
 }
