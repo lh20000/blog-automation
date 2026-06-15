@@ -1,22 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-05-12",
-      "timestamp": "2026-05-12T13:20:55",
-      "title": "Git이 도대체 뭐길래? 나만 모르는 협업 도구 완벽정리",
-      "url": "https://fixitlab-kr.blogspot.com/2026/05/earth-git-summary-collaboration-tools.html",
-      "category": "IT/테크",
-      "keyword": "Git"
-    },
-    {
-      "date": "2026-05-13",
-      "timestamp": "2026-05-13T13:39:02",
-      "title": "IDE가 뭔지 도저히 모르겠다면? 2026년 기준 초보자를 위한 핵심 가이드",
-      "url": "https://fixitlab-kr.blogspot.com/2026/05/if-you-have-no-idea-2026.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "IDE"
-    },
-    {
       "date": "2026-05-22",
       "timestamp": "2026-05-22T13:43:19",
       "title": "나만 몰랐던 자바스크립트 효율적 학습법과 3가지 핵심 팁",
@@ -95,6 +79,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/06/cloud-storage-capacity-management.html",
       "category": "IT/테크",
       "keyword": "클라우드"
+    },
+    {
+      "date": "2026-06-15",
+      "timestamp": "2026-06-15T02:02:06",
+      "title": "코드 고치다 지친 당신을 위한 디버깅 3가지 핵심 전략",
+      "url": "https://fixitlab-kr.blogspot.com/2026/06/key-debugging-strategies-those-tired.html",
+      "category": "라이프스타일/생산성",
+      "keyword": "디버깅"
     }
   ]
 }
