@@ -1,12 +1,8 @@
 {
-  "date": "2026-06-15",
+  "date": "2026-06-17",
   "keywords": [
     {
-      "keyword": "디버깅",
-      "blog": "fixitlab_ko"
-    },
-    {
-      "keyword": "도커",
+      "keyword": "파인튜닝",
       "blog": "fixitlab_ko"
     }
   ]
