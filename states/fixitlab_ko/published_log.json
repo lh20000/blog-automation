@@ -1,46 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-05-31",
-      "timestamp": "2026-05-31T12:57:17",
-      "title": "나만 몰랐던 AI 에이전트 활용법, 2026년 최신 가이드",
-      "url": "https://fixitlab-kr.blogspot.com/2026/05/ai-agents-that-only-didn-2026.html",
-      "category": "IT/테크",
-      "keyword": "AI 에이전트"
-    },
-    {
-      "date": "2026-06-01",
-      "timestamp": "2026-06-01T17:01:01",
-      "title": "오픈소스가 뭔지 이제 제대로 알아보겠습니다: 2026년 기준 입문 가이드",
-      "url": "https://fixitlab-kr.blogspot.com/2026/06/now-let-take-closer-look-2026-0601.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "오픈소스"
-    },
-    {
-      "date": "2026-06-02",
-      "timestamp": "2026-06-02T15:40:25",
-      "title": "API가 도대체 뭘까, 나만 몰랐던 IT 상식 3분 완벽정리",
-      "url": "https://fixitlab-kr.blogspot.com/2026/06/earth-api-summary-it-common-2026-0602.html",
-      "category": "IT/테크",
-      "keyword": "API"
-    },
-    {
-      "date": "2026-06-03",
-      "timestamp": "2026-06-03T02:11:09",
-      "title": "터미널 프로그램 아직도 어렵나요? 5분 만에 끝내는 기본 사용법",
-      "url": "https://fixitlab-kr.blogspot.com/2026/06/terminal-program-still-difficult-basic.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "터미널"
-    },
-    {
-      "date": "2026-06-04",
-      "timestamp": "2026-06-04T02:08:43",
-      "title": "파이썬 공부 시작이 막막한 분들을 위한 2026년 최신 입문 가이드",
-      "url": "https://fixitlab-kr.blogspot.com/2026/06/introductory-those-loss-start-learning.html",
-      "category": "IT/테크",
-      "keyword": "파이썬"
-    },
-    {
       "date": "2026-06-05",
       "timestamp": "2026-06-05T01:38:50",
       "title": "쿠다(KUDA) 서비스 이용법과 2026년 최신 활용 팁",
@@ -119,6 +79,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/06/if-you-have-no-idea-2026-0629.html",
       "category": "라이프스타일/생산성",
       "keyword": "IDE"
+    },
+    {
+      "date": "2026-07-05",
+      "timestamp": "2026-07-05T12:48:45",
+      "title": "리눅스가 도대체 뭐길래 다들 배우라고 할까, 2026년 기준 핵심 입문 가이드",
+      "url": "https://fixitlab-kr.blogspot.com/2026/07/earth-linux-so-everyone-should-2026.html",
+      "category": "라이프스타일/생산성",
+      "keyword": "리눅스"
     }
   ]
 }
