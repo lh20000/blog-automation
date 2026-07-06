@@ -1,14 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-06-05",
-      "timestamp": "2026-06-05T01:38:50",
-      "title": "쿠다(KUDA) 서비스 이용법과 2026년 최신 활용 팁",
-      "url": "https://fixitlab-kr.blogspot.com/2026/06/kuda-service-usage-2026.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "쿠다"
-    },
-    {
       "date": "2026-06-06",
       "timestamp": "2026-06-06T12:51:21",
       "title": "LLM이 도대체 뭔지 5분 만에 이해하고 실생활에 써먹는 법",
@@ -87,6 +79,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/07/earth-linux-so-everyone-should-2026.html",
       "category": "라이프스타일/생산성",
       "keyword": "리눅스"
+    },
+    {
+      "date": "2026-07-06",
+      "timestamp": "2026-07-06T01:17:29",
+      "title": "파이썬 입문 고민 끝, 2026년 비전공자도 5분 만에 시작하는 법",
+      "url": "https://fixitlab-kr.blogspot.com/2026/07/end-your-worries-getting-started-2026.html",
+      "category": "IT/테크",
+      "keyword": "파이썬"
     }
   ]
 }
