@@ -1,14 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-06-06",
-      "timestamp": "2026-06-06T12:51:21",
-      "title": "LLM이 도대체 뭔지 5분 만에 이해하고 실생활에 써먹는 법",
-      "url": "https://fixitlab-kr.blogspot.com/2026/06/understand-llm-minutes-it-real-2026.html",
-      "category": "IT/테크",
-      "keyword": "LLM"
-    },
-    {
       "date": "2026-06-07",
       "timestamp": "2026-06-07T01:38:49",
       "title": "컨테이너 활용법, 2026년 기준 똑똑하게 선택하는 3가지 팁",
@@ -95,6 +87,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/07/still-don-cuda-it-2026.html",
       "category": "라이프스타일/생산성",
       "keyword": "쿠다"
+    },
+    {
+      "date": "2026-07-07",
+      "timestamp": "2026-07-07T01:18:49",
+      "title": "GPU가 뭔지 몰라도 이것만 보면 5분 안에 이해됩니다",
+      "url": "https://fixitlab-kr.blogspot.com/2026/07/even-if-you-don-gpu-2026.html",
+      "category": "라이프스타일/생산성",
+      "keyword": "GPU"
     }
   ]
 }
