@@ -1,22 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-06-07",
-      "timestamp": "2026-06-07T01:38:49",
-      "title": "컨테이너 활용법, 2026년 기준 똑똑하게 선택하는 3가지 팁",
-      "url": "https://fixitlab-kr.blogspot.com/2026/06/containers-choosing-wisely-2026.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "컨테이너"
-    },
-    {
-      "date": "2026-06-11",
-      "timestamp": "2026-06-11T15:03:26",
-      "title": "클라우드 저장소, 나만 몰랐던 용량 관리와 활용 팁 3가지",
-      "url": "https://fixitlab-kr.blogspot.com/2026/06/cloud-storage-capacity-management.html",
-      "category": "IT/테크",
-      "keyword": "클라우드"
-    },
-    {
       "date": "2026-06-15",
       "timestamp": "2026-06-15T02:02:06",
       "title": "코드 고치다 지친 당신을 위한 디버깅 3가지 핵심 전략",
@@ -103,6 +87,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/07/attention-those-spend-time-looking-2026.html",
       "category": "IT/테크",
       "keyword": "벡터DB"
+    },
+    {
+      "date": "2026-07-12",
+      "timestamp": "2026-07-12T12:12:55",
+      "title": "나만 몰랐던 AI 에이전트 활용법, 2026년 최신 가이드",
+      "url": "https://fixitlab-kr.blogspot.com/2026/07/ai-agents-that-only-didn-2026-0712.html",
+      "category": "IT/테크",
+      "keyword": "AI 에이전트"
     }
   ]
 }
