@@ -1,22 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-06-15",
-      "timestamp": "2026-06-15T02:02:06",
-      "title": "코드 고치다 지친 당신을 위한 디버깅 3가지 핵심 전략",
-      "url": "https://fixitlab-kr.blogspot.com/2026/06/key-debugging-strategies-those-tired.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "디버깅"
-    },
-    {
-      "date": "2026-06-15",
-      "timestamp": "2026-06-15T16:26:12",
-      "title": "나만 몰랐던 도커, 2026년 기준 입문자가 꼭 알아야 할 3가지 방법",
-      "url": "https://fixitlab-kr.blogspot.com/2026/06/docker-that-only-didn-that-2026.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "도커"
-    },
-    {
       "date": "2026-06-17",
       "timestamp": "2026-06-17T02:04:19",
       "title": "2026년 파인튜닝이 대체 뭔지 3가지 방법으로 완벽정리",
@@ -119,6 +103,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/07/cloud-storage-useful-managing-utilizing.html",
       "category": "IT/테크",
       "keyword": "클라우드"
+    },
+    {
+      "date": "2026-07-16",
+      "timestamp": "2026-07-16T12:58:33",
+      "title": "2026년 나만 몰랐던 자바스크립트 효율적 학습법 3가지",
+      "url": "https://fixitlab-kr.blogspot.com/2026/07/efficient-javascript-that-only-didn-2026.html",
+      "category": "IT/테크",
+      "keyword": "자바스크립트"
     }
   ]
 }
