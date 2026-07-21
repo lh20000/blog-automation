@@ -1,14 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-06-20",
-      "timestamp": "2026-06-20T13:03:38",
-      "title": "임베딩이 뭔지 알면 AI 활용 능력이 2배 빨라지는 이유",
-      "url": "https://fixitlab-kr.blogspot.com/2026/06/knowing-embedding-will-double-your-2026.html",
-      "category": "IT/테크",
-      "keyword": "임베딩"
-    },
-    {
       "date": "2026-06-25",
       "timestamp": "2026-06-25T13:35:26",
       "title": "코딩 초보자도 10분 만에 이해하는 Git 기초 3가지 방법",
@@ -119,6 +111,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/07/summary-commands-that-even-those-2026.html",
       "category": "라이프스타일/생산성",
       "keyword": "터미널"
+    },
+    {
+      "date": "2026-07-21",
+      "timestamp": "2026-07-21T12:52:17",
+      "title": "개발자만 쓰는 줄 알았던 도커, 2026년 기준 입문자를 위한 실무 활용법",
+      "url": "https://fixitlab-kr.blogspot.com/2026/07/docker-thought-used-only-developers-2026.html",
+      "category": "IT/테크",
+      "keyword": "도커"
     }
   ]
 }
