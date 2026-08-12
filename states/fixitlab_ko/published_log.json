@@ -1,30 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-07-07",
-      "timestamp": "2026-07-07T01:18:49",
-      "title": "GPU가 뭔지 몰라도 이것만 보면 5분 안에 이해됩니다",
-      "url": "https://fixitlab-kr.blogspot.com/2026/07/even-if-you-don-gpu-2026.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "GPU"
-    },
-    {
-      "date": "2026-07-07",
-      "timestamp": "2026-07-07T13:33:15",
-      "title": "데이터 찾느라 3시간 쓰던 분들 주목, 벡터DB가 뭔지 이제 제대로 알아보겠습니다",
-      "url": "https://fixitlab-kr.blogspot.com/2026/07/attention-those-spend-time-looking-2026.html",
-      "category": "IT/테크",
-      "keyword": "벡터DB"
-    },
-    {
-      "date": "2026-07-12",
-      "timestamp": "2026-07-12T12:12:55",
-      "title": "나만 몰랐던 AI 에이전트 활용법, 2026년 최신 가이드",
-      "url": "https://fixitlab-kr.blogspot.com/2026/07/ai-agents-that-only-didn-2026-0712.html",
-      "category": "IT/테크",
-      "keyword": "AI 에이전트"
-    },
-    {
       "date": "2026-07-13",
       "timestamp": "2026-07-13T01:07:00",
       "title": "API가 도대체 뭘까, 나만 몰랐던 IT 용어 3분 만에 완벽정리",
@@ -119,6 +95,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/08/summary-mcp-standards-2026.html",
       "category": "라이프스타일/생산성",
       "keyword": "MCP"
+    },
+    {
+      "date": "2026-08-12",
+      "timestamp": "2026-08-12T12:08:46",
+      "title": "파인튜닝이 뭐길래 다들 난리일까, 5분 만에 완벽 이해하기",
+      "url": "https://fixitlab-kr.blogspot.com/2026/08/fine-tuning-that-everyone-so-2026.html",
+      "category": "라이프스타일/생산성",
+      "keyword": "파인튜닝"
     }
   ]
 }
