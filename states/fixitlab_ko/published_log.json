@@ -1,22 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-07-13",
-      "timestamp": "2026-07-13T01:07:00",
-      "title": "API가 도대체 뭘까, 나만 몰랐던 IT 용어 3분 만에 완벽정리",
-      "url": "https://fixitlab-kr.blogspot.com/2026/07/earth-api-summary-it-terms-2026-0713.html",
-      "category": "IT/테크",
-      "keyword": "API"
-    },
-    {
-      "date": "2026-07-14",
-      "timestamp": "2026-07-14T12:47:21",
-      "title": "프롬프트 활용법, 인공지능과 대화하며 결과물 200% 높이는 3가지 방법",
-      "url": "https://fixitlab-kr.blogspot.com/2026/07/prompts-improve-results-talking.html",
-      "category": "IT/테크",
-      "keyword": "프롬프트"
-    },
-    {
       "date": "2026-07-15",
       "timestamp": "2026-07-15T12:51:29",
       "title": "클라우드 저장소, 나만 몰랐던 용량 관리와 활용 꿀팁 3가지",
@@ -103,6 +87,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/08/fine-tuning-that-everyone-so-2026.html",
       "category": "라이프스타일/생산성",
       "keyword": "파인튜닝"
+    },
+    {
+      "date": "2026-08-14",
+      "timestamp": "2026-08-14T00:09:55",
+      "title": "GPU가 뭔지 이제 제대로 알아보겠습니다: 2026년 기준 핵심 활용 가이드",
+      "url": "https://fixitlab-kr.blogspot.com/2026/08/now-let-take-closer-look-2026-0814.html",
+      "category": "라이프스타일/생산성",
+      "keyword": "GPU"
     }
   ]
 }
