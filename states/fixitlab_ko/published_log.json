@@ -1,14 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-07-15",
-      "timestamp": "2026-07-15T12:51:29",
-      "title": "클라우드 저장소, 나만 몰랐던 용량 관리와 활용 꿀팁 3가지",
-      "url": "https://fixitlab-kr.blogspot.com/2026/07/cloud-storage-useful-managing-utilizing.html",
-      "category": "IT/테크",
-      "keyword": "클라우드"
-    },
-    {
       "date": "2026-07-16",
       "timestamp": "2026-07-16T12:58:33",
       "title": "2026년 나만 몰랐던 자바스크립트 효율적 학습법 3가지",
@@ -95,6 +87,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/08/now-let-take-closer-look-2026-0814.html",
       "category": "라이프스타일/생산성",
       "keyword": "GPU"
+    },
+    {
+      "date": "2026-08-15",
+      "timestamp": "2026-08-15T11:44:42",
+      "title": "2026년형 AI 에이전트 활용법, 나만 몰랐던 똑똑한 비서 만들기",
+      "url": "https://fixitlab-kr.blogspot.com/2026/08/ai-agents-creating-smart-assistant-2026.html",
+      "category": "IT/테크",
+      "keyword": "AI 에이전트"
     }
   ]
 }
