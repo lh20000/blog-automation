@@ -1,30 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-07-17",
-      "timestamp": "2026-07-17T12:42:27",
-      "title": "코드 작성하다 막혔을 때 바로 써먹는 디버깅 3가지 방법",
-      "url": "https://fixitlab-kr.blogspot.com/2026/07/debugging-you-stuck-while-writing-2026.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "디버깅"
-    },
-    {
-      "date": "2026-07-19",
-      "timestamp": "2026-07-19T01:03:49",
-      "title": "터미널 모르는 사람도 5분 만에 끝내는 명령어 완벽정리",
-      "url": "https://fixitlab-kr.blogspot.com/2026/07/summary-commands-that-even-those-2026.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "터미널"
-    },
-    {
-      "date": "2026-07-21",
-      "timestamp": "2026-07-21T12:52:17",
-      "title": "개발자만 쓰는 줄 알았던 도커, 2026년 기준 입문자를 위한 실무 활용법",
-      "url": "https://fixitlab-kr.blogspot.com/2026/07/docker-thought-used-only-developers-2026.html",
-      "category": "IT/테크",
-      "keyword": "도커"
-    },
-    {
       "date": "2026-07-26",
       "timestamp": "2026-07-26T01:08:57",
       "title": "코딩 초보도 10분이면 끝내는 GitHub 시작하기 2026 가이드",
@@ -103,6 +79,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/08/post-2026-089b1544.html",
       "category": "라이프스타일/생산성",
       "keyword": "리눅스"
+    },
+    {
+      "date": "2026-08-22",
+      "timestamp": "2026-08-22T11:45:30",
+      "title": "파이썬이 뭔지 아직도 막막하다면? 2026년 기준 초보자 가이드",
+      "url": "https://fixitlab-kr.blogspot.com/2026/08/if-you-re-still-confused-2026.html",
+      "category": "IT/테크",
+      "keyword": "파이썬"
     }
   ]
 }
