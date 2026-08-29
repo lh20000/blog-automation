@@ -1,14 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-07-26",
-      "timestamp": "2026-07-26T01:08:57",
-      "title": "코딩 초보도 10분이면 끝내는 GitHub 시작하기 2026 가이드",
-      "url": "https://fixitlab-kr.blogspot.com/2026/07/getting-started-github-that-can-2026.html",
-      "category": "IT/테크",
-      "keyword": "GitHub"
-    },
-    {
       "date": "2026-07-31",
       "timestamp": "2026-07-31T01:07:30",
       "title": "데이터 분석의 핵심 임베딩, 초보자도 5분 만에 이해하는 법",
@@ -87,6 +79,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/08/if-you-re-still-confused-2026.html",
       "category": "IT/테크",
       "keyword": "파이썬"
+    },
+    {
+      "date": "2026-08-29",
+      "timestamp": "2026-08-29T15:44:44",
+      "title": "데이터 활용이 빨라지는 벡터DB, 2026년 기준 핵심 완벽정리",
+      "url": "https://fixitlab-kr.blogspot.com/2026/08/vector-db-accelerates-data-utilization.html",
+      "category": "IT/테크",
+      "keyword": "벡터DB"
     }
   ]
 }
