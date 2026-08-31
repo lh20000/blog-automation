@@ -1,14 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-07-31",
-      "timestamp": "2026-07-31T01:07:30",
-      "title": "데이터 분석의 핵심 임베딩, 초보자도 5분 만에 이해하는 법",
-      "url": "https://fixitlab-kr.blogspot.com/2026/07/core-embedding-data-analysis-even-2026.html",
-      "category": "IT/테크",
-      "keyword": "임베딩"
-    },
-    {
       "date": "2026-08-02",
       "timestamp": "2026-08-02T01:08:50",
       "title": "컨테이너 건축, 나만 몰랐던 장단점과 2026년 기준 체크리스트",
@@ -87,6 +79,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/08/vector-db-accelerates-data-utilization.html",
       "category": "IT/테크",
       "keyword": "벡터DB"
+    },
+    {
+      "date": "2026-08-31",
+      "timestamp": "2026-08-31T01:32:43",
+      "title": "개발자라면 꼭 알아야 할 자바스크립트 비동기 처리 핵심 3가지",
+      "url": "https://fixitlab-kr.blogspot.com/2026/08/post-2026-d04997bb.html",
+      "category": "IT/테크",
+      "keyword": "자바스크립트"
     }
   ]
 }
