@@ -1,38 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-08-02",
-      "timestamp": "2026-08-02T01:08:50",
-      "title": "컨테이너 건축, 나만 몰랐던 장단점과 2026년 기준 체크리스트",
-      "url": "https://fixitlab-kr.blogspot.com/2026/08/container-construction-checklist-pros.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "컨테이너"
-    },
-    {
-      "date": "2026-08-03",
-      "timestamp": "2026-08-03T01:08:22",
-      "title": "2026년 컴퓨터 화면만 보던 분들을 위한 CLI 사용법 3가지",
-      "url": "https://fixitlab-kr.blogspot.com/2026/08/cli-those-only-look-computer-2026.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "CLI"
-    },
-    {
-      "date": "2026-08-06",
-      "timestamp": "2026-08-06T13:09:39",
-      "title": "MCP가 뭔지 2026년 최신 기준으로 완벽정리 완전정리",
-      "url": "https://fixitlab-kr.blogspot.com/2026/08/summary-mcp-standards-2026.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "MCP"
-    },
-    {
-      "date": "2026-08-12",
-      "timestamp": "2026-08-12T12:08:46",
-      "title": "파인튜닝이 뭐길래 다들 난리일까, 5분 만에 완벽 이해하기",
-      "url": "https://fixitlab-kr.blogspot.com/2026/08/fine-tuning-that-everyone-so-2026.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "파인튜닝"
-    },
-    {
       "date": "2026-08-14",
       "timestamp": "2026-08-14T00:09:55",
       "title": "GPU가 뭔지 이제 제대로 알아보겠습니다: 2026년 기준 핵심 활용 가이드",
@@ -95,6 +63,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/09/post-2026-a901b676.html",
       "category": "IT/테크",
       "keyword": "디버깅"
+    },
+    {
+      "date": "2026-09-13",
+      "timestamp": "2026-09-13T01:21:39",
+      "title": "데이터를 숫자로 바꾸는 임베딩, 2026년 기준으로 쉽게 이해하기",
+      "url": "https://fixitlab-kr.blogspot.com/2026/09/post-2026-aa4564e6.html",
+      "category": "IT/테크",
+      "keyword": "임베딩"
     }
   ]
 }
