@@ -1,14 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-08-14",
-      "timestamp": "2026-08-14T00:09:55",
-      "title": "GPU가 뭔지 이제 제대로 알아보겠습니다: 2026년 기준 핵심 활용 가이드",
-      "url": "https://fixitlab-kr.blogspot.com/2026/08/now-let-take-closer-look-2026-0814.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "GPU"
-    },
-    {
       "date": "2026-08-15",
       "timestamp": "2026-08-15T11:44:42",
       "title": "2026년형 AI 에이전트 활용법, 나만 몰랐던 똑똑한 비서 만들기",
@@ -71,6 +63,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/09/post-2026-aa4564e6.html",
       "category": "IT/테크",
       "keyword": "임베딩"
+    },
+    {
+      "date": "2026-09-14",
+      "timestamp": "2026-09-14T01:30:07",
+      "title": "컨테이너 하우스 고민 중이라면 반드시 알아야 할 3가지 사실",
+      "url": "https://fixitlab-kr.blogspot.com/2026/09/post-2026-95edddcf.html",
+      "category": "라이프스타일/생산성",
+      "keyword": "컨테이너"
     }
   ]
 }
