@@ -1,17 +1,9 @@
 {
-  "date": "2026-09-30",
+  "date": "2026-10-01",
   "keywords": [
     {
-      "keyword": "LLM",
-      "blog": "fixitlab_ko"
-    },
-    {
-      "keyword": "주식",
+      "keyword": "약",
       "blog": "ohopick"
-    },
-    {
-      "keyword": "도커",
-      "blog": "fixitlab_ko"
     }
   ]
 }
