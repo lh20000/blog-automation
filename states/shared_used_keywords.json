@@ -1,17 +1,9 @@
 {
-  "date": "2026-10-02",
+  "date": "2026-10-04",
   "keywords": [
     {
-      "keyword": "건강",
-      "blog": "ohopick"
-    },
-    {
-      "keyword": "리눅스",
+      "keyword": "디버깅",
       "blog": "fixitlab_ko"
-    },
-    {
-      "keyword": "전세",
-      "blog": "ohopick"
     }
   ]
 }
