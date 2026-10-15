@@ -1,30 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-09-13",
-      "timestamp": "2026-09-13T01:21:39",
-      "title": "데이터를 숫자로 바꾸는 임베딩, 2026년 기준으로 쉽게 이해하기",
-      "url": "https://fixitlab-kr.blogspot.com/2026/09/post-2026-aa4564e6.html",
-      "category": "IT/테크",
-      "keyword": "임베딩"
-    },
-    {
-      "date": "2026-09-14",
-      "timestamp": "2026-09-14T01:30:07",
-      "title": "컨테이너 하우스 고민 중이라면 반드시 알아야 할 3가지 사실",
-      "url": "https://fixitlab-kr.blogspot.com/2026/09/post-2026-95edddcf.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "컨테이너"
-    },
-    {
-      "date": "2026-09-14",
-      "timestamp": "2026-09-14T17:02:26",
-      "title": "코딩 초보자도 5분이면 이해하는 GitHub 활용법 완벽정리",
-      "url": "https://fixitlab-kr.blogspot.com/2026/09/post-2026-10ab51e4.html",
-      "category": "IT/테크",
-      "keyword": "GitHub"
-    },
-    {
       "date": "2026-09-17",
       "timestamp": "2026-09-17T01:39:01",
       "title": "MCP가 뭔지 이제 제대로 알아보겠습니다: 2026년 최신 가이드",
@@ -111,6 +87,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/10/post-2026-75d85259.html",
       "category": "IT/테크",
       "keyword": "IDE"
+    },
+    {
+      "date": "2026-10-15",
+      "timestamp": "2026-10-15T15:41:13",
+      "title": "2026년형 AI 에이전트 활용법, 나만 모르면 손해인 이유",
+      "url": "https://fixitlab-kr.blogspot.com/2026/10/post-2026-d2eaadc0.html",
+      "category": "IT/테크",
+      "keyword": "AI 에이전트"
     }
   ]
 }
