@@ -1,14 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-09-17",
-      "timestamp": "2026-09-17T01:39:01",
-      "title": "MCP가 뭔지 이제 제대로 알아보겠습니다: 2026년 최신 가이드",
-      "url": "https://fixitlab-kr.blogspot.com/2026/09/post-2026-6e2e0bcd.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "MCP"
-    },
-    {
       "date": "2026-09-19",
       "timestamp": "2026-09-19T01:28:50",
       "title": "컴퓨터가 어렵게 느껴질 때 바로 써먹는 CLI 기초 3가지",
@@ -95,6 +87,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/10/post-2026-d2eaadc0.html",
       "category": "IT/테크",
       "keyword": "AI 에이전트"
+    },
+    {
+      "date": "2026-10-18",
+      "timestamp": "2026-10-18T14:45:37",
+      "title": "쿠다 알고 나면 정말 쉬운 3가지 활용법과 2026년 최신 정보",
+      "url": "https://fixitlab-kr.blogspot.com/2026/10/post-2026-7a7a682f.html",
+      "category": "라이프스타일/생산성",
+      "keyword": "쿠다"
     }
   ]
 }
