@@ -1,14 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-09-19",
-      "timestamp": "2026-09-19T01:28:50",
-      "title": "컴퓨터가 어렵게 느껴질 때 바로 써먹는 CLI 기초 3가지",
-      "url": "https://fixitlab-kr.blogspot.com/2026/09/post-2026-7b105025.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "CLI"
-    },
-    {
       "date": "2026-09-30",
       "timestamp": "2026-09-30T02:19:12",
       "title": "LLM이 도대체 뭘까, 나만 몰랐던 AI 시대 필수 상식 3가지",
@@ -103,6 +95,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/10/post-2026-4f944360.html",
       "category": "라이프스타일/생산성",
       "keyword": "GPU"
+    },
+    {
+      "date": "2026-10-30",
+      "timestamp": "2026-10-30T17:15:15",
+      "title": "컨테이너 활용법, 2026년 기준 공간 효율 200% 높이는 방법",
+      "url": "https://fixitlab-kr.blogspot.com/2026/10/post-2026-731eb4b8.html",
+      "category": "라이프스타일/생산성",
+      "keyword": "컨테이너"
     }
   ]
 }
