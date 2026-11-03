@@ -1,30 +1,6 @@
 {
   "entries": [
     {
-      "date": "2026-09-30",
-      "timestamp": "2026-09-30T02:19:12",
-      "title": "LLM이 도대체 뭘까, 나만 몰랐던 AI 시대 필수 상식 3가지",
-      "url": "https://fixitlab-kr.blogspot.com/2026/09/post-2026-3e9667b6.html",
-      "category": "IT/테크",
-      "keyword": "LLM"
-    },
-    {
-      "date": "2026-09-30",
-      "timestamp": "2026-09-30T16:54:59",
-      "title": "도커가 뭔지 아직도 막막하신가요? 3분 만에 개념부터 실전 활용까지 완벽정리",
-      "url": "https://fixitlab-kr.blogspot.com/2026/10/post-2026-eb6f60dd.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "도커"
-    },
-    {
-      "date": "2026-10-02",
-      "timestamp": "2026-10-02T02:31:01",
-      "title": "리눅스가 뭔지 고민하던 당신을 위한 2026년 최신 입문 가이드",
-      "url": "https://fixitlab-kr.blogspot.com/2026/10/post-2026-4d333c63.html",
-      "category": "라이프스타일/생산성",
-      "keyword": "리눅스"
-    },
-    {
       "date": "2026-10-04",
       "timestamp": "2026-10-04T02:50:06",
       "title": "코딩 초보도 5분 만에 끝내는 디버깅 핵심 가이드 2026년판",
@@ -103,6 +79,14 @@
       "url": "https://fixitlab-kr.blogspot.com/2026/10/post-2026-731eb4b8.html",
       "category": "라이프스타일/생산성",
       "keyword": "컨테이너"
+    },
+    {
+      "date": "2026-11-03",
+      "timestamp": "2026-11-03T03:59:43",
+      "title": "자바스크립트 기초, 초보자도 1시간 만에 이해하는 핵심 정리",
+      "url": "https://fixitlab-kr.blogspot.com/2026/11/post-2026-894b964c.html",
+      "category": "IT/테크",
+      "keyword": "자바스크립트"
     }
   ]
 }
